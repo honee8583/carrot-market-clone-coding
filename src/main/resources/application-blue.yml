@@ -1,0 +1,17 @@
+spring:
+  config:
+    activate:
+      on-profile: blue
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ENC(1O5W6jYYhS843ppW75fyn1FnjaCmUhtB32BfcleuFiWB0LU7GNip3tu1TKQ1bXSBKPXdhA/EGwk=)
+    username: root
+    password: ENC(IodgSOc+Fl9zsU7t261DauMaJCjRPSNq)
+
+server:
+  env: blue
+  port: 8080
+  serverAddress: 3.34.206.95
+
+serverName: blue_server
