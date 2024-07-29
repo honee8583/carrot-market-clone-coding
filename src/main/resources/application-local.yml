@@ -1,0 +1,17 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ENC(5iqUJ6eDqXpET6gKOeTsnTFj0hO412FCbws+mTphzzxJqBpDg8AkhjsMODvB6TKTG/Z9dDIKWxMthFd00UhSSg==)
+    username: root
+    password: ENC(IodgSOc+Fl9zsU7t261DauMaJCjRPSNq)
+
+server:
+  env: local
+  port: 8080
+  serverAddress: localhost
+
+serverName: localhost
