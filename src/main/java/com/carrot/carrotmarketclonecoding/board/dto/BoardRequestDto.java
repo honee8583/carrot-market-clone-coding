@@ -1,5 +1,7 @@
 package com.carrot.carrotmarketclonecoding.board.dto;
 
+import static com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE.*;
+
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.common.exception.ValidEnum;
 import jakarta.validation.constraints.NotEmpty;
@@ -19,26 +21,25 @@ public class BoardRequestDto {
     public static class BoardRegisterRequestDto {
         private MultipartFile[] pictures;
 
-        @NotEmpty(message = "제목은 필수 입력사항입니다!")
+        @NotEmpty(message = TITLE_NOT_VALID)
         private String title;
 
-        @NotNull(message = "카테고리는 필수 입력사항입니다!")
+        @NotNull(message = CATEGORY_NOT_VALID)
         private Long categoryId;
 
-//        @NotNull(message = "거래방식은 필수 입력사항입니다!")
         @ValidEnum(enumClass = Method.class)
         private Method method;
 
-        @NotNull(message = "가격은 필수 입력사항입니다!")
+        @NotNull(message = PRICE_NOT_VALID)
         private Integer price;
 
-        @NotNull(message = "거래제안받기여부는 필수 입력사항입니다!")
+        @NotNull(message = SUGGEST_NOT_VALID)
         private Boolean suggest;
 
-        @Size(max = 300, message = "상품 설명은 300글자 이내여야 합니다!")
+        @Size(max = 300, message = DESCRIPTION_NOT_VALID)
         private String description;
 
-        @NotEmpty(message = "거래희망장소는 필수 입력사항입니다!")
+        @NotEmpty(message = PLACE_NOT_VALID)
         private String place;
 
         private Boolean tmp;
