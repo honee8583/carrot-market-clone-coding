@@ -8,7 +8,7 @@ public class CategoryNotFoundException extends CustomException {
 
     @Override
     public HttpStatus getStatus() {
-        return HttpStatus.NOT_FOUND;
+        return HttpStatus.BAD_REQUEST;
     }
 
     @Override
