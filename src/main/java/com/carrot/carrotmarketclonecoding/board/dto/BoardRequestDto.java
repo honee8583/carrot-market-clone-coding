@@ -3,7 +3,7 @@ package com.carrot.carrotmarketclonecoding.board.dto;
 import static com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
-import com.carrot.carrotmarketclonecoding.common.exception.ValidEnum;
+import com.carrot.carrotmarketclonecoding.common.validation.ValidEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

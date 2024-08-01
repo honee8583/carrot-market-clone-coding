@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.common.exception;
+package com.carrot.carrotmarketclonecoding.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
