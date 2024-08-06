@@ -16,3 +16,9 @@ encryptor:
 
 server:
   env: blue
+
+s3:
+  board:
+    bucket: ENC(bNnIVCrcukSCn+ewUyarhrco4Y6GDvwgUwtPhk/CcpRwGd3waQzxCA==)
+    accessKey: ENC(9I+FNe3mBV4sCcP+wF5Wo1E0tWxa5I6Qh2VpT0nHzuU=)
+    secretKey: ENC(h6QDcliPmdblNeU+SluXUxywb09NhatUUjRI9RJoaUcFkCOSieRxNcp9SXjQ1gWjjFufORPP2BA=)

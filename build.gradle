@@ -42,6 +42,9 @@ dependencies {
     // flyway
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.flywaydb:flyway-core'
+
+    // S3
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.690'
 }
 
 tasks.named('test') {
