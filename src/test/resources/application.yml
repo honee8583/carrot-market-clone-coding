@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MYSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  flyway:
+    enabled: false
+
+encryptor:
+  key: ${JASYPT_KEY}
+
+s3:
+  board:
+    bucket: ENC(DYBumT/r/jJNVv0aIdXL0suri5bX5EeMZse+xuS5mfI=)
+    accessKey: ENC(9I+FNe3mBV4sCcP+wF5Wo1E0tWxa5I6Qh2VpT0nHzuU=)
+    secretKey: ENC(h6QDcliPmdblNeU+SluXUxywb09NhatUUjRI9RJoaUcFkCOSieRxNcp9SXjQ1gWjjFufORPP2BA=)

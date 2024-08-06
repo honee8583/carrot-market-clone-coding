@@ -32,8 +32,19 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // jasypt
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+
+    // validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation:3.3.1'
+
+    // flyway
     implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.flywaydb:flyway-core'
+
+    // S3
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.690'
 }
 
 tasks.named('test') {
