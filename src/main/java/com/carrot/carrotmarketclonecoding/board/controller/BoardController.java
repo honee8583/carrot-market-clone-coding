@@ -9,8 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -19,7 +19,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping("/board/register")
-    public ResponseEntity<?> register(@RequestBody @Valid BoardRegisterRequestDto registerRequestDto) {
+    public ResponseEntity<?> register(@ModelAttribute @Valid BoardRegisterRequestDto registerRequestDto) {
         // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
 
