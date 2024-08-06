@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.service;
 
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.FILE_UPLOAD_LIMIT;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,16 +17,19 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.FailedMessage;
 import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -64,13 +68,12 @@ class BoardServiceTest {
             Long memberId = 1L;
             Long categoryId = 1L;
             Long boardId = 1L;
-            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
-
             Member mockMember = Member.builder().id(memberId).build();
             Category mockCategory = Category.builder().id(categoryId).build();
             Board mockBoard = Board.builder().id(boardId).build();
             String mockPictureUrl = "https://test-bucket/test1.jpg";
             BoardPicture mockBoardPicture = BoardPicture.builder().id(1L).pictureUrl(mockPictureUrl).build();
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
 
             when(memberRepository.findById(any())).thenReturn(Optional.of(mockMember));
             when(categoryRepository.findById(any())).thenReturn(Optional.of(mockCategory));
@@ -86,13 +89,70 @@ class BoardServiceTest {
         }
 
         @Test
+        @DisplayName("성공 - 나눔게시판의 경우 가격은 0으로 설정")
+        void registerShareBoard() {
+            // given
+            Long memberId = 1L;
+            Long categoryId = 1L;
+            Long boardId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Category mockCategory = Category.builder().id(categoryId).build();
+            Board mockBoard = Board.builder().id(boardId).build();
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
+            boardRegisterRequestDto.setMethod(Method.SHARE);
+
+            ArgumentCaptor<Board> captor = ArgumentCaptor.forClass(Board.class);
+
+            when(memberRepository.findById(any())).thenReturn(Optional.of(mockMember));
+            when(categoryRepository.findById(any())).thenReturn(Optional.of(mockCategory));
+            when(boardRepository.save(captor.capture())).thenReturn(mockBoard);
+
+            // when
+            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId);
+
+            // then
+            Board capturedBoard = captor.getValue();
+            assertThat(capturedBoard.getPrice()).isEqualTo(0);
+            assertThat(registeredBoardId).isEqualTo(boardId);
+        }
+
+        @Test
+        @DisplayName("실패 - 업로드 요청한 파일의 개수가 10개 초과")
+        void fileUploadLimitExceeded() {
+            // given
+            MultipartFile[] files = IntStream.range(0, 11)
+                    .mapToObj(i -> new MockMultipartFile(
+                            "file" + i,
+                            "file" + i + ".png",
+                            "text/png",
+                            ("Picture" + i).getBytes()
+                    ))
+                    .toArray(MultipartFile[]::new);
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
+            boardRegisterRequestDto.setPictures(files);
+
+            Long memberId = 1L;
+            Long categoryId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Category mockCategory = Category.builder().id(categoryId).build();
+
+            // when
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
+
+            // then
+            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId))
+                    .hasMessage(FILE_UPLOAD_LIMIT.getMessage())
+                    .isInstanceOf(FileUploadLimitException.class);
+        }
+
+        @Test
         @DisplayName("실패 - 존재하지 않는 작성자")
         void registerBoardMemberNotFound() {
             // given
             Long memberId = 1L;
-            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
-
             Member mockMember = Member.builder().id(memberId).build();
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
