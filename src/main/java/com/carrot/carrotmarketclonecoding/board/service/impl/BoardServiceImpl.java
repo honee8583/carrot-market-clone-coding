@@ -58,7 +58,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     private void validatePictures(MultipartFile[] pictures) {
-        if (pictures.length > FILE_LIMIT_COUNT) {
+        if (pictures != null && pictures.length > FILE_LIMIT_COUNT) {
             throw new FileUploadLimitException();
         }
     }
