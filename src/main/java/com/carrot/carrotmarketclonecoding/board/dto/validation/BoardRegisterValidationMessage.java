@@ -20,7 +20,8 @@ public enum BoardRegisterValidationMessage {
         public static final String CATEGORY_NOT_VALID = "카테고리는 필수 입력사항입니다!";
         public static final String PRICE_NOT_VALID = "가격은 필수 입력사항입니다!";
         public static final String SUGGEST_NOT_VALID = "거래제안받기여부는 필수 입력사항입니다!";
-        public static final String DESCRIPTION_NOT_VALID = "상품 설명은 300글자 이내여야 합니다!";
+        public static final String DESCRIPTION_NOT_VALID = "상품설명은 필수 입력값입니다!";
+        public static final String DESCRIPTION_OVER_LENGTH = "상품 설명은 300글자 이내여야 합니다!";
         public static final String PLACE_NOT_VALID = "거래희망장소는 필수 입력사항입니다!";
     }
 }

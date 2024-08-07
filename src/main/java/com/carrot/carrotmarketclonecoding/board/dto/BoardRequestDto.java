@@ -36,7 +36,8 @@ public class BoardRequestDto {
         @NotNull(message = SUGGEST_NOT_VALID)
         private Boolean suggest;
 
-        @Size(max = 300, message = DESCRIPTION_NOT_VALID)
+        @NotEmpty(message = DESCRIPTION_NOT_VALID)
+        @Size(max = 300, message = DESCRIPTION_OVER_LENGTH)
         private String description;
 
         @NotEmpty(message = PLACE_NOT_VALID)
