@@ -9,6 +9,14 @@ spring:
     username: root
     password: ENC(IodgSOc+Fl9zsU7t261DauMaJCjRPSNq)
 
+  data:
+    redis:
+      host: ENC(PgnZGrO2VsW7JQAPvnYD7spp5X0nxFWX)
+      port: 6379
+
+  jpa:
+    show-sql: false
+
 server:
   env: green
   port: 8081
