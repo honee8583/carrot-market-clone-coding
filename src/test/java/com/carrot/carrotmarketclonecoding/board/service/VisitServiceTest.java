@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
@@ -24,20 +23,19 @@ class VisitServiceTest {
     private static final String BOARD_VISIT_KEY = "board:visit:";
 
     @Test
-    @DisplayName("레디스 컨테이너를 사용해 게시판 set에 memberId value 저장 테스트")
+    @DisplayName("레디스 TestContainer를 사용해 조회이력 저장 테스트")
     void testIncrementVisit() {
         // given
         String boardId = "1";
         String memberId = "1";
-        String visitKey = BOARD_VISIT_KEY + boardId;
-        SetOperations<String, String> setOperations = redisTemplate.opsForSet();
+        String key = BOARD_VISIT_KEY + boardId + ":" + memberId;
+        redisTemplate.opsForValue().set(key, "1", 24, TimeUnit.HOURS);
 
         // when
-        boolean isFirstTimeView =  setOperations.add(visitKey, memberId) > 0;
-        redisTemplate.expire(visitKey, 1, TimeUnit.MINUTES);
+        Boolean memberViewed = redisTemplate.hasKey(key);
 
         // then
-        assertThat(isFirstTimeView).isEqualTo(true);
-        assertThat(setOperations.pop(visitKey)).isEqualTo("1");
+        assertThat(memberViewed).isEqualTo(true);
+        assertThat(redisTemplate.opsForValue().get(key)).isEqualTo("1");
     }
 }
