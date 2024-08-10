@@ -1,21 +1,21 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.CATEGORY_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.FILE_UPLOAD_LIMIT;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.INPUT_NOT_VALID;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_REGISTER_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
+import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
@@ -187,6 +187,50 @@ class BoardControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(CATEGORY_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 조회 컨트롤러 테스트")
+    class BoardDetail {
+
+        @Test
+        @DisplayName("성공")
+        void boardDetailSuccess() throws Exception {
+            // given
+            Long boardId = 1L;
+            BoardDetailResponseDto response = BoardDetailResponseDto.builder()
+                    .id(boardId)
+                    .build();
+
+            // when
+            when(boardService.detail(anyLong(), anyLong())).thenReturn(response);
+
+            // then
+            mvc.perform(get("/board/{id}", boardId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_DETAIL_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.id", equalTo(boardId.intValue())));
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 게시판 아이디")
+        void boardDetailBoardNotFound() throws Exception {
+            // given
+            Long boardId = 1L;
+
+            // when
+            when(boardService.detail(anyLong(), anyLong())).thenThrow(new BoardNotFoundException());
+
+            // then
+            mvc.perform(get("/board/{id}", boardId))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }
