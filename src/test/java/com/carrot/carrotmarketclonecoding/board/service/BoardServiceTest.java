@@ -1,21 +1,27 @@
 package com.carrot.carrotmarketclonecoding.board.service;
 
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.BOARD_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.FILE_UPLOAD_LIMIT;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
+import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
@@ -23,6 +29,8 @@ import com.carrot.carrotmarketclonecoding.common.response.FailedMessage;
 import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +63,13 @@ class BoardServiceTest {
     private BoardPictureRepository boardPictureRepository;
 
     @Mock
+    private BoardLikeRepository boardLikeRepository;
+
+    @Mock
     private FileServiceImpl fileService;
+
+    @Mock
+    private VisitService visitService;
 
     @Nested
     @DisplayName("게시글 작성 서비스 테스트")
@@ -198,6 +212,101 @@ class BoardServiceTest {
                     .suggest(true)
                     .description("description")
                     .place("place")
+                    .tmp(false)
+                    .build();
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 조회 서비스 테스트")
+    class BoardDetail {
+
+        @Test
+        @DisplayName("성공 - 조회수 증가 포함")
+        void boardDetailSuccess() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Board mockBoard = createMockBoard(boardId, memberId);
+
+            List<BoardPicture> mockPictures = Arrays.asList(
+                    BoardPicture.builder().id(1L).build(),
+                    BoardPicture.builder().id(2L).build());
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
+            when(boardLikeRepository.countByBoard(any())).thenReturn(10);
+            when(visitService.increaseVisit(anyString(), anyString())).thenReturn(true);
+
+            // when
+            BoardDetailResponseDto result = boardService.detail(boardId, memberId);
+
+            // then
+            assertThat(result.getId()).isEqualTo(boardId);
+            assertThat(result.getTitle()).isEqualTo("title");
+            assertThat(result.getWriter()).isEqualTo("member");
+            assertThat(result.getCategory()).isEqualTo("category");
+            assertThat(result.getPrice()).isEqualTo(20000);
+            assertThat(result.getMethod()).isEqualTo(Method.SELL);
+            assertThat(result.getSuggest()).isEqualTo(false);
+            assertThat(result.getDescription()).isEqualTo("description");
+            assertThat(result.getPlace()).isEqualTo("place");
+            assertThat(result.getVisit()).isEqualTo(11);
+            assertThat(result.getStatus()).isEqualTo(Status.SELL);
+        }
+
+        @Test
+        @DisplayName("성공 - 24시간내에 재조회할경우 조회수 증가 x")
+        void boardDetailSuccessVisitCountNotIncreased() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Board mockBoard = createMockBoard(boardId, memberId);
+
+            List<BoardPicture> mockPictures = Arrays.asList(
+                    BoardPicture.builder().id(1L).build(),
+                    BoardPicture.builder().id(2L).build());
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
+            when(boardLikeRepository.countByBoard(any())).thenReturn(10);
+            when(visitService.increaseVisit(anyString(), anyString())).thenReturn(false);
+
+            // when
+            BoardDetailResponseDto result = boardService.detail(boardId, memberId);
+
+            // then
+            assertThat(result.getVisit()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 게시판")
+        void boardDetailBoardNotFound() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.detail(boardId, memberId))
+                    .isInstanceOf(BoardNotFoundException.class)
+                    .hasMessage(BOARD_NOT_FOUND.getMessage());
+        }
+
+        private Board createMockBoard(Long boardId, Long memberId) {
+            return Board.builder()
+                    .id(boardId)
+                    .title("title")
+                    .member(Member.builder().id(memberId).nickname("member").build())
+                    .category(Category.builder().id(1L).name("category").build())
+                    .method(Method.SELL)
+                    .price(20000)
+                    .suggest(false)
+                    .description("description")
+                    .place("place")
+                    .visit(10)
+                    .status(Status.SELL)
                     .tmp(false)
                     .build();
         }

@@ -60,6 +60,10 @@ public class Board extends BaseEntity {
 
     private Boolean tmp;
 
+    public void increaseVisit() {
+        this.visit += 1;
+    }
+
     public static Board createBoard(BoardRegisterRequestDto boardInputRequestDto, Member member, Category category) {
         return Board.builder()
                 .title(boardInputRequestDto.getTitle())
