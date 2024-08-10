@@ -2,6 +2,7 @@ package com.carrot.carrotmarketclonecoding.board.dto;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,8 +31,10 @@ public class BoardResponseDto {
         private Status status;
         private String title;
         private String category;
+        private Method method;
+        private int price;
         private Boolean suggest;
-        private LocalDateTime createdDate;
+        private LocalDateTime createDate;
         private String description;
         private List<PictureResponseDto> pictures = new ArrayList<>();
         private int chat;
@@ -47,8 +50,10 @@ public class BoardResponseDto {
                     .status(board.getStatus())
                     .title(board.getTitle())
                     .category(board.getCategory().getName())
+                    .method(board.getMethod())
+                    .price(board.getPrice())
                     .suggest(board.getSuggest())
-                    .createdDate(board.getCreateDate())
+                    .createDate(board.getCreateDate())
                     .description(board.getDescription())
                     .pictures(pictures.stream()
                             .map(PictureResponseDto::createPictureDetail)
