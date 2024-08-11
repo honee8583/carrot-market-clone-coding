@@ -227,6 +227,7 @@ class BoardServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
+            String sessionId = "session:" + memberId;
             Board mockBoard = createMockBoard(boardId, memberId);
 
             List<BoardPicture> mockPictures = Arrays.asList(
@@ -239,7 +240,7 @@ class BoardServiceTest {
             when(visitService.increaseVisit(anyString(), anyString())).thenReturn(true);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, memberId);
+            BoardDetailResponseDto result = boardService.detail(boardId, sessionId);
 
             // then
             assertThat(result.getId()).isEqualTo(boardId);
@@ -273,7 +274,7 @@ class BoardServiceTest {
             when(visitService.increaseVisit(anyString(), anyString())).thenReturn(false);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, memberId);
+            BoardDetailResponseDto result = boardService.detail(boardId, "sessionId:" + memberId);
 
             // then
             assertThat(result.getVisit()).isEqualTo(10);
@@ -289,7 +290,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.detail(boardId, memberId))
+            assertThatThrownBy(() -> boardService.detail(boardId, "sessionId:" + memberId))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
