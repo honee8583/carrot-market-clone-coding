@@ -12,14 +12,20 @@ public class VisitService {
 
     private static final String BOARD_VISIT_KEY_PREFIX = "board:visit:";
 
-    public boolean increaseVisit(String boardId, String memberId) {
-        String key = BOARD_VISIT_KEY_PREFIX + boardId + ":" + memberId;
-        Boolean memberViewed = redisTemplate.hasKey(key);
-        if (memberViewed != null && !memberViewed) {
-            redisTemplate.opsForValue().set(key, "1", 24, TimeUnit.HOURS);
+    public boolean increaseVisit(String boardId, String sessionId) {
+        String sessionKey = BOARD_VISIT_KEY_PREFIX + boardId + ":session:" + sessionId;
+        Boolean viewed = redisTemplate.hasKey(sessionKey);
+        if (sessionId != null && sessionId.length() > 0) {
+            return setSessionKey(viewed, sessionKey);
+        }
+        return false;
+    }
+
+    private boolean setSessionKey(Boolean viewed, String sessionKey) {
+        if (viewed != null && !viewed) {
+            redisTemplate.opsForValue().set(sessionKey, "1", 24, TimeUnit.HOURS);
             return true;
         }
-
         return false;
     }
 }
