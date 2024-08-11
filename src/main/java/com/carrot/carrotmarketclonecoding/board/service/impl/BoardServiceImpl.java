@@ -21,11 +21,9 @@ import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
@@ -59,12 +57,12 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardDetailResponseDto detail(Long boardId, Long memberId) {
+    public BoardDetailResponseDto detail(Long boardId, String sessionId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         List<BoardPicture> pictures = boardPictureRepository.findByBoard(board);
         int like = boardLikeRepository.countByBoard(board);
 
-        if (visitService.increaseVisit(board.getId().toString(), memberId.toString())) {
+        if (visitService.increaseVisit(board.getId().toString(), sessionId)) {
             board.increaseVisit();
             boardRepository.save(board);
         }

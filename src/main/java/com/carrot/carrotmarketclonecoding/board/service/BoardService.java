@@ -6,5 +6,5 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetail
 public interface BoardService {
     Long register(BoardRegisterRequestDto inputRequestDto, Long memberId);
 
-    BoardDetailResponseDto detail(Long boardId, Long memberId);
+    BoardDetailResponseDto detail(Long boardId, String sessionId);
 }

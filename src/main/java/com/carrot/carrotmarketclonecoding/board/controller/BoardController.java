@@ -7,6 +7,7 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegiste
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,8 @@ public class BoardController {
     }
 
     @GetMapping("/board/{id}")
-    public ResponseEntity<?> detail(@PathVariable("id") Long id) {
-        // TODO memberId -> JWT.getMemberId()
-        Long memberId = 1L;
-        BoardDetailResponseDto boardDetail = boardService.detail(id, memberId);
+    public ResponseEntity<?> detail(@PathVariable("id") Long id, HttpSession session) {
+        BoardDetailResponseDto boardDetail = boardService.detail(id, session.getId());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_DETAIL_SUCCESS.getMessage(), boardDetail));

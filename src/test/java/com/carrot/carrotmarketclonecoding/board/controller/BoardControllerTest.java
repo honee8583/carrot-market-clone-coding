@@ -5,6 +5,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -205,7 +206,7 @@ class BoardControllerTest {
                     .build();
 
             // when
-            when(boardService.detail(anyLong(), anyLong())).thenReturn(response);
+            when(boardService.detail(anyLong(), anyString())).thenReturn(response);
 
             // then
             mvc.perform(get("/board/{id}", boardId))
@@ -223,7 +224,7 @@ class BoardControllerTest {
             Long boardId = 1L;
 
             // when
-            when(boardService.detail(anyLong(), anyLong())).thenThrow(new BoardNotFoundException());
+            when(boardService.detail(anyLong(), anyString())).thenThrow(new BoardNotFoundException());
 
             // then
             mvc.perform(get("/board/{id}", boardId))
