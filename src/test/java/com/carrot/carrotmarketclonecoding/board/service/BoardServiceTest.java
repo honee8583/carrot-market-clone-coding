@@ -96,7 +96,34 @@ class BoardServiceTest {
             when(boardPictureRepository.save(any())).thenReturn(mockBoardPicture);
 
             // when
-            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId);
+            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId, false);
+
+            // then
+            assertThat(registeredBoardId).isEqualTo(boardId);
+        }
+
+        @Test
+        @DisplayName("성공 - 게시글 임시저장")
+        void registerBoardTmp() {
+            // given
+            Long memberId = 1L;
+            Long categoryId = 1L;
+            Long boardId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Category mockCategory = Category.builder().id(categoryId).build();
+            Board mockBoard = Board.builder().id(boardId).build();
+            String mockPictureUrl = "https://test-bucket/test1.jpg";
+            BoardPicture mockBoardPicture = BoardPicture.builder().id(1L).pictureUrl(mockPictureUrl).build();
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
+
+            when(memberRepository.findById(any())).thenReturn(Optional.of(mockMember));
+            when(categoryRepository.findById(any())).thenReturn(Optional.of(mockCategory));
+            when(boardRepository.save(any())).thenReturn(mockBoard);
+            when(fileService.uploadImage(any())).thenReturn(mockPictureUrl);
+            when(boardPictureRepository.save(any())).thenReturn(mockBoardPicture);
+
+            // when
+            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId, true);
 
             // then
             assertThat(registeredBoardId).isEqualTo(boardId);
@@ -122,7 +149,7 @@ class BoardServiceTest {
             when(boardRepository.save(captor.capture())).thenReturn(mockBoard);
 
             // when
-            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId);
+            Long registeredBoardId = boardService.register(boardRegisterRequestDto, memberId, false);
 
             // then
             Board capturedBoard = captor.getValue();
@@ -155,7 +182,7 @@ class BoardServiceTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
             // then
-            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId))
+            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId, false))
                     .hasMessage(FILE_UPLOAD_LIMIT.getMessage())
                     .isInstanceOf(FileUploadLimitException.class);
         }
@@ -173,7 +200,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId))
+            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId, false))
                     .isInstanceOf(CategoryNotFoundException.class)
                     .hasMessage(FailedMessage.CATEGORY_NOT_FOUND.getMessage());
         }
@@ -189,7 +216,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId))
+            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId, false))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -212,7 +239,6 @@ class BoardServiceTest {
                     .suggest(true)
                     .description("description")
                     .place("place")
-                    .tmp(false)
                     .build();
         }
     }

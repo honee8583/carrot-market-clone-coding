@@ -4,6 +4,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -50,7 +51,7 @@ class BoardControllerTest {
         void boardRegisterSuccess() throws Exception {
             // given
             // when
-            when(boardService.register(any(), anyLong())).thenReturn(1L);
+            when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
 
             // then
             mvc.perform(multipart("/board/register")
@@ -61,12 +62,35 @@ class BoardControllerTest {
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place")
-                            .param("tmp", "false"))
+                            .param("place", "place"))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.status", equalTo(201)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
                     .andExpect(jsonPath("$.message", equalTo(BOARD_REGISTER_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("성공 - 게시글 임시저장")
+        void boardRegisterTmpSuccess() throws Exception {
+            // given
+            // when
+            when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
+
+            // then
+            mvc.perform(multipart("/board/register/tmp")
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .param("title", "title")
+                            .param("categoryId", "1")
+                            .param("method", "SELL")
+                            .param("price", "200000")
+                            .param("suggest", "true")
+                            .param("description", "description")
+                            .param("place", "place"))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.status", equalTo(201)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_REGISTER_TEMPORARY_SUCCESS.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
 
@@ -84,7 +108,7 @@ class BoardControllerTest {
             }
 
             // when
-            when(boardService.register(any(), anyLong())).thenThrow(FileUploadLimitException.class);
+            when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(FileUploadLimitException.class);
 
             // then
             mvc.perform(multipart("/board/register")
@@ -106,7 +130,6 @@ class BoardControllerTest {
                             .param("suggest", "true")
                             .param("description", "description")
                             .param("place", "place")
-                            .param("tmp", "false")
                             .contentType(MediaType.MULTIPART_FORM_DATA))
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.status", equalTo(500)))
@@ -132,8 +155,7 @@ class BoardControllerTest {
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place")
-                            .param("tmp", "false"))
+                            .param("place", "place"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -146,7 +168,7 @@ class BoardControllerTest {
         void boardRegisterMemberNotFound() throws Exception {
             // given
             // when
-            when(boardService.register(any(), anyLong())).thenThrow(MemberNotFoundException.class);
+            when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(MemberNotFoundException.class);
 
             // then
             mvc.perform(post("/board/register")
@@ -157,8 +179,7 @@ class BoardControllerTest {
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place")
-                            .param("tmp", "false"))
+                            .param("place", "place"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -171,7 +192,7 @@ class BoardControllerTest {
         void boardRegisterCategoryNotFound() throws Exception {
             // given
             // when
-            when(boardService.register(any(), anyLong())).thenThrow(CategoryNotFoundException.class);
+            when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(CategoryNotFoundException.class);
 
             // then
             mvc.perform(post("/board/register")
@@ -182,8 +203,7 @@ class BoardControllerTest {
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place")
-                            .param("tmp", "false"))
+                            .param("place", "place"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
