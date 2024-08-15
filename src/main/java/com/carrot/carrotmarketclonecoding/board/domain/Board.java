@@ -43,7 +43,7 @@ public class Board extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Method method;
 
-    private int price;
+    private Integer price;
     private Boolean suggest;
     private String description;
     private String place;
@@ -64,7 +64,7 @@ public class Board extends BaseEntity {
         this.visit += 1;
     }
 
-    public static Board createBoard(BoardRegisterRequestDto boardInputRequestDto, Member member, Category category) {
+    public static Board createBoard(BoardRegisterRequestDto boardInputRequestDto, Member member, Category category, boolean tmp) {
         return Board.builder()
                 .title(boardInputRequestDto.getTitle())
                 .member(member)
@@ -74,7 +74,7 @@ public class Board extends BaseEntity {
                 .suggest(boardInputRequestDto.getSuggest())
                 .description(boardInputRequestDto.getDescription())
                 .place(boardInputRequestDto.getPlace())
-                .tmp(boardInputRequestDto.getTmp())
+                .tmp(tmp)
                 .build();
     }
 }

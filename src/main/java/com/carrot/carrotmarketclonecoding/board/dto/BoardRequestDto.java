@@ -43,6 +43,10 @@ public class BoardRequestDto {
         @NotEmpty(message = PLACE_NOT_VALID)
         private String place;
 
-        private Boolean tmp;
+        public void setPriceZeroIfMethodIsShare() {
+            if (this.method == Method.SHARE) {
+                this.price = 0;
+            }
+        }
     }
 }

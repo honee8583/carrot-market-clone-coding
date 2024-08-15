@@ -1,7 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_GET_DETAIL_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_REGISTER_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
@@ -27,11 +26,20 @@ public class BoardController {
     public ResponseEntity<?> register(@ModelAttribute @Valid BoardRegisterRequestDto registerRequestDto) {
         // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
-
-        boardService.register(registerRequestDto, memberId);
+        boardService.register(registerRequestDto, memberId, false);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, BOARD_REGISTER_SUCCESS.getMessage(), null));
+    }
+
+    @PostMapping("/board/register/tmp")
+    public ResponseEntity<?> registerTmp(@ModelAttribute BoardRegisterRequestDto registerRequestDto) {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        boardService.register(registerRequestDto, memberId, true);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ResponseResult.success(HttpStatus.CREATED, BOARD_REGISTER_TEMPORARY_SUCCESS.getMessage(), null));
     }
 
     @GetMapping("/board/{id}")
