@@ -3,7 +3,6 @@ package com.carrot.carrotmarketclonecoding.board.service.impl;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
-import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
@@ -22,6 +21,7 @@ import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -38,25 +38,19 @@ public class BoardServiceImpl implements BoardService {
     private final int FILE_LIMIT_COUNT = 10;
 
     @Override
-    public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId) {
+    public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        Category category = categoryRepository.findById(registerRequestDto.getCategoryId())
-                .orElseThrow(CategoryNotFoundException::new);
+        Category category = findCategoryIfCategoryIdNotNull(registerRequestDto.getCategoryId());
+        registerRequestDto.setPriceZeroIfMethodIsShare();
+        Board board = boardRepository.save(Board.createBoard(registerRequestDto, member, category, tmp));
 
-        checkMethod(registerRequestDto);
-
-        Board board = boardRepository.save(Board.createBoard(registerRequestDto, member, category));
-
-        validatePictures(registerRequestDto.getPictures());
-
-        if (registerRequestDto.getPictures() != null && registerRequestDto.getPictures().length > 0) {
-            uploadPictures(registerRequestDto.getPictures(), board);
-        }
+        uploadPicturesIfExistAndUnderLimit(registerRequestDto.getPictures(), board);
 
         return board.getId();
     }
 
     @Override
+    @Transactional
     public BoardDetailResponseDto detail(Long boardId, String sessionId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         List<BoardPicture> pictures = boardPictureRepository.findByBoard(board);
@@ -64,7 +58,6 @@ public class BoardServiceImpl implements BoardService {
 
         if (visitService.increaseVisit(board.getId().toString(), sessionId)) {
             board.increaseVisit();
-            boardRepository.save(board);
         }
 
         // TODO count chats
@@ -72,15 +65,20 @@ public class BoardServiceImpl implements BoardService {
         return BoardDetailResponseDto.createBoardDetail(board, pictures, like);
     }
 
-    private void checkMethod(BoardRegisterRequestDto registerRequestDto) {
-        if (registerRequestDto.getMethod() == Method.SHARE) {
-            registerRequestDto.setPrice(0);
+    private void validatePicturesCountLimit(MultipartFile[] pictures) {
+        if (pictures != null && pictures.length > FILE_LIMIT_COUNT) {
+            throw new FileUploadLimitException();
         }
     }
 
-    private void validatePictures(MultipartFile[] pictures) {
-        if (pictures != null && pictures.length > FILE_LIMIT_COUNT) {
-            throw new FileUploadLimitException();
+    private boolean isPicturesExist(MultipartFile[] pictures) {
+        return pictures != null && pictures.length > 0;
+    }
+
+    private void uploadPicturesIfExistAndUnderLimit(MultipartFile[] pictures, Board board) {
+        validatePicturesCountLimit(pictures);
+        if (isPicturesExist(pictures)) {
+            uploadPictures(pictures, board);
         }
     }
 
@@ -92,5 +90,12 @@ public class BoardServiceImpl implements BoardService {
                     .pictureUrl(pictureUrl)
                     .build());
         }
+    }
+
+    private Category findCategoryIfCategoryIdNotNull(Long categoryId) {
+        if (categoryId != null && categoryId > 0) {
+            return categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+        }
+        return null;
     }
 }
