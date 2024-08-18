@@ -3,8 +3,10 @@ package com.carrot.carrotmarketclonecoding.board.domain;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +15,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,29 +57,54 @@ public class Board extends BaseEntity {
     private int visit = 0;
 
     @Builder.Default
-    private Boolean hide = false;   // 수정만 가능
+    private Boolean hide = false;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Status status = Status.SELL;  // 수정만 가능
+    private Status status = Status.SELL;
 
     private Boolean tmp;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    private List<BoardPicture> boardPictures = new ArrayList<>();
 
     public void increaseVisit() {
         this.visit += 1;
     }
 
-    public static Board createBoard(BoardRegisterRequestDto boardInputRequestDto, Member member, Category category, boolean tmp) {
+    public static Board createBoard(BoardRegisterRequestDto registerRequestDto, Member member, Category category, boolean tmp) {
         return Board.builder()
-                .title(boardInputRequestDto.getTitle())
+                .title(registerRequestDto.getTitle())
                 .member(member)
                 .category(category)
-                .method(boardInputRequestDto.getMethod())
-                .price(boardInputRequestDto.getPrice())
-                .suggest(boardInputRequestDto.getSuggest())
-                .description(boardInputRequestDto.getDescription())
-                .place(boardInputRequestDto.getPlace())
+                .method(registerRequestDto.getMethod())
+                .price(registerRequestDto.getPrice())
+                .suggest(registerRequestDto.getSuggest())
+                .description(registerRequestDto.getDescription())
+                .place(registerRequestDto.getPlace())
                 .tmp(tmp)
                 .build();
+    }
+
+    public void update(BoardUpdateRequestDto updateRequestDto, Category category) {
+        this.title = updateRequestDto.getTitle();
+        this.category = category;
+        this.method = updateRequestDto.getMethod();
+        this.price = updateRequestDto.getPrice();
+        this.suggest = updateRequestDto.getSuggest();
+        this.description = updateRequestDto.getDescription();
+        this.place = updateRequestDto.getPlace();
+
+        if (updateRequestDto.getMethod() == Method.SHARE) {
+            this.price = 0;
+        }
+
+        if (this.tmp) {
+            this.tmp = false;
+        }
+    }
+
+    public void setPriceZeroIfMethodIsShare() {
+        if (this.method == Method.SHARE) this.price = 0;
     }
 }

@@ -7,20 +7,28 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
+import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +40,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(BoardController.class)
 class BoardControllerTest {
@@ -41,6 +50,9 @@ class BoardControllerTest {
 
     @MockBean
     BoardServiceImpl boardService;
+
+    @MockBean
+    BoardPictureService boardPictureService;
 
     @Nested
     @DisplayName("게시글 작성 컨트롤러 테스트")
@@ -54,7 +66,7 @@ class BoardControllerTest {
             when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
 
             // then
-            mvc.perform(multipart("/board/register")
+            mvc.perform(post("/board/register")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
@@ -78,7 +90,7 @@ class BoardControllerTest {
             when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
 
             // then
-            mvc.perform(multipart("/board/register/tmp")
+            mvc.perform(post("/board/register/tmp")
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
@@ -147,7 +159,7 @@ class BoardControllerTest {
 
             // when
             // then
-            mvc.perform(multipart("/board/register")
+            mvc.perform(post("/board/register")
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "")
                             .param("categoryId", "1")
@@ -252,6 +264,107 @@ class BoardControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 수정 컨트롤러 테스트")
+    class UpdateBoard {
+
+        @Test
+        @DisplayName("성공")
+        void boardUpdateSuccess() throws Exception {
+            // given
+            // when
+            doNothing().when(boardService).update(any(), anyLong(), anyLong());
+
+            // then
+            mvc.perform(patch("/board/{id}", 1L)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .param("title", "title2")
+                            .param("categoryId", "2")
+                            .param("method", "SHARE")
+                            .param("price", "200000")
+                            .param("suggest", "true")
+                            .param("description", "description2")
+                            .param("place", "place2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_UPDATE_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 사용자")
+        void boardUpdateFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).update(any(), anyLong(), anyLong());
+
+            // then
+            mvc.perform(patch("/board/{id}", 1L)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .param("title", "title2")
+                            .param("categoryId", "2")
+                            .param("method", "SHARE")
+                            .param("price", "200000")
+                            .param("suggest", "true")
+                            .param("description", "description2")
+                            .param("place", "place2"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 사용자")
+        void boardUpdateFailBoardNotFound() throws Exception {
+            // given
+            // when
+            doThrow(BoardNotFoundException.class).when(boardService).update(any(), anyLong(), anyLong());
+
+            // then
+            mvc.perform(patch("/board/{id}", 1L)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .param("title", "title2")
+                            .param("categoryId", "2")
+                            .param("method", "SHARE")
+                            .param("price", "200000")
+                            .param("suggest", "true")
+                            .param("description", "description2")
+                            .param("place", "place2"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        void boardUpdateFailMemberIsNotWriter() throws Exception {
+            // given
+            // when
+            doThrow(UnauthorizedAccessException.class).when(boardService).update(any(), anyLong(), anyLong());
+
+            // then
+            mvc.perform(patch("/board/{id}", 1L)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .param("title", "title2")
+                            .param("categoryId", "2")
+                            .param("method", "SHARE")
+                            .param("price", "200000")
+                            .param("suggest", "true")
+                            .param("description", "description2")
+                            .param("place", "place2"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status", equalTo(403)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }

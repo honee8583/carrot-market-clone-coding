@@ -49,4 +49,37 @@ public class BoardRequestDto {
             }
         }
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class  BoardUpdateRequestDto {
+        @NotEmpty(message = TITLE_NOT_VALID)
+        private String title;
+
+        @NotNull(message = CATEGORY_NOT_VALID)
+        private Long categoryId;
+
+        @ValidEnum(enumClass = Method.class)
+        private Method method;
+
+        @NotNull(message = PRICE_NOT_VALID)
+        private Integer price;
+
+        @NotNull(message = SUGGEST_NOT_VALID)
+        private Boolean suggest;
+
+        @NotEmpty(message = DESCRIPTION_NOT_VALID)
+        @Size(max = 300, message = DESCRIPTION_OVER_LENGTH)
+        private String description;
+
+        @NotEmpty(message = PLACE_NOT_VALID)
+        private String place;
+
+        private MultipartFile[] newPictures;
+        private Long[] removePictures;
+    }
 }

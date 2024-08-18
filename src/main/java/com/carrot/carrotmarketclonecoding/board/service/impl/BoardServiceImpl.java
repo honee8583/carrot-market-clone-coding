@@ -4,6 +4,7 @@ import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
@@ -13,18 +14,17 @@ import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.board.service.VisitService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
-import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
-import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
     private final BoardRepository boardRepository;
@@ -32,25 +32,22 @@ public class BoardServiceImpl implements BoardService {
     private final CategoryRepository categoryRepository;
     private final BoardPictureRepository boardPictureRepository;
     private final BoardLikeRepository boardLikeRepository;
-    private final FileServiceImpl fileService;
     private final VisitService visitService;
-
-    private final int FILE_LIMIT_COUNT = 10;
+    private final BoardPictureService boardPictureService;
 
     @Override
     public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Category category = findCategoryIfCategoryIdNotNull(registerRequestDto.getCategoryId());
-        registerRequestDto.setPriceZeroIfMethodIsShare();
-        Board board = boardRepository.save(Board.createBoard(registerRequestDto, member, category, tmp));
-
-        uploadPicturesIfExistAndUnderLimit(registerRequestDto.getPictures(), board);
+        Board board = Board.createBoard(registerRequestDto, member, category, tmp);
+        board.setPriceZeroIfMethodIsShare();
+        boardRepository.save(board);
+        boardPictureService.uploadPicturesIfExistAndUnderLimit(registerRequestDto.getPictures(), board);
 
         return board.getId();
     }
 
     @Override
-    @Transactional
     public BoardDetailResponseDto detail(Long boardId, String sessionId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         List<BoardPicture> pictures = boardPictureRepository.findByBoard(board);
@@ -65,31 +62,20 @@ public class BoardServiceImpl implements BoardService {
         return BoardDetailResponseDto.createBoardDetail(board, pictures, like);
     }
 
-    private void validatePicturesCountLimit(MultipartFile[] pictures) {
-        if (pictures != null && pictures.length > FILE_LIMIT_COUNT) {
-            throw new FileUploadLimitException();
+    @Override
+    public void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
+        isWriterOfBoard(board, member);
+        if (board.getTmp()) {
+            boardRepository.deleteAllByMemberAndTmpIsTrueAndIdIsNot(member, boardId);
         }
-    }
 
-    private boolean isPicturesExist(MultipartFile[] pictures) {
-        return pictures != null && pictures.length > 0;
-    }
+        Category category = categoryRepository.findById(updateRequestDto.getCategoryId()).orElseThrow(CategoryNotFoundException::new);
+        board.update(updateRequestDto, category);
 
-    private void uploadPicturesIfExistAndUnderLimit(MultipartFile[] pictures, Board board) {
-        validatePicturesCountLimit(pictures);
-        if (isPicturesExist(pictures)) {
-            uploadPictures(pictures, board);
-        }
-    }
-
-    private void uploadPictures(MultipartFile[] pictures, Board board) {
-        for (MultipartFile file : pictures) {
-            String pictureUrl = fileService.uploadImage(file);
-            boardPictureRepository.save(BoardPicture.builder()
-                    .board(board)
-                    .pictureUrl(pictureUrl)
-                    .build());
-        }
+        boardPictureService.deletePicturesIfExist(updateRequestDto.getRemovePictures());
+        boardPictureService.uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), board);
     }
 
     private Category findCategoryIfCategoryIdNotNull(Long categoryId) {
@@ -97,5 +83,12 @@ public class BoardServiceImpl implements BoardService {
             return categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
         }
         return null;
+
+    }
+
+    private void isWriterOfBoard(Board board, Member member) {
+        if (board.getMember() != member) {
+            throw new UnauthorizedAccessException();
+        }
     }
 }
