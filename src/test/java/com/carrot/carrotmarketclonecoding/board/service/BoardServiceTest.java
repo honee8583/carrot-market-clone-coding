@@ -506,6 +506,83 @@ class BoardServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("게시글 삭제 서비스 테스트")
+    class DeleteBoard {
+
+        @Test
+        @DisplayName("성공")
+        void deleteBoardSuccess() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Board mockBoard = Board.builder().id(boardId).member(mockMember).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+
+            // when
+            boardService.delete(boardId, memberId);
+
+            // then
+            verify(boardRepository).delete(mockBoard);
+        }
+
+        @Test
+        @DisplayName("실패 - 게시글 존재하지 않음")
+        void deleteBoardFailBoardNotFound() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(BoardNotFoundException.class)
+                    .hasMessage(BOARD_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자 존재하지 않음")
+        void deleteBoardFailMemberNotFound() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Board mockBoard = Board.builder().id(boardId).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        void deleteBoardFailMemberIsNotWriter() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Board mockBoard = Board.builder().id(boardId).member(Member.builder().id(2L).build()).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(UnauthorizedAccessException.class)
+                    .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
+        }
+    }
+
     private MultipartFile[] createFilesOver10() {
         return IntStream.range(0, 20)
                 .mapToObj(i -> new MockMultipartFile(
