@@ -85,4 +85,26 @@ public class Board extends BaseEntity {
                 .tmp(tmp)
                 .build();
     }
+
+    public void update(BoardUpdateRequestDto updateRequestDto, Category category) {
+        this.title = updateRequestDto.getTitle();
+        this.category = category;
+        this.method = updateRequestDto.getMethod();
+        this.price = updateRequestDto.getPrice();
+        this.suggest = updateRequestDto.getSuggest();
+        this.description = updateRequestDto.getDescription();
+        this.place = updateRequestDto.getPlace();
+
+        if (updateRequestDto.getMethod() == Method.SHARE) {
+            this.price = 0;
+        }
+
+        if (this.tmp) {
+            this.tmp = false;
+        }
+    }
+
+    public void setPriceZeroIfMethodIsShare() {
+        if (this.method == Method.SHARE) this.price = 0;
+    }
 }
