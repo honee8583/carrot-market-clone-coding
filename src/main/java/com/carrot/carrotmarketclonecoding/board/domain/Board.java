@@ -72,16 +72,16 @@ public class Board extends BaseEntity {
         this.visit += 1;
     }
 
-    public static Board createBoard(BoardRegisterRequestDto boardInputRequestDto, Member member, Category category, boolean tmp) {
+    public static Board createBoard(BoardRegisterRequestDto registerRequestDto, Member member, Category category, boolean tmp) {
         return Board.builder()
-                .title(boardInputRequestDto.getTitle())
+                .title(registerRequestDto.getTitle())
                 .member(member)
                 .category(category)
-                .method(boardInputRequestDto.getMethod())
-                .price(boardInputRequestDto.getPrice())
-                .suggest(boardInputRequestDto.getSuggest())
-                .description(boardInputRequestDto.getDescription())
-                .place(boardInputRequestDto.getPlace())
+                .method(registerRequestDto.getMethod())
+                .price(registerRequestDto.getPrice())
+                .suggest(registerRequestDto.getSuggest())
+                .description(registerRequestDto.getDescription())
+                .place(registerRequestDto.getPlace())
                 .tmp(tmp)
                 .build();
     }
