@@ -19,6 +19,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,20 @@ public class BoardServiceImpl implements BoardService {
 
         // TODO count chats
 
-        return BoardDetailResponseDto.createBoardDetail(board, pictures, like);
+        return BoardDetailResponseDto.createBoardDetail(board, like);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BoardDetailResponseDto tmpBoardDetail(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Optional<Board> board = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member);
+
+        if (board.isPresent()) {
+            return BoardDetailResponseDto.createBoardDetail(board.get(), 0);
+        }
+
+        return null;
     }
 
     @Override
