@@ -214,11 +214,11 @@ class BoardServiceTest {
             Long boardId = 1L;
             Long memberId = 1L;
             String sessionId = "session:" + memberId;
-            Board mockBoard = createMockBoard(boardId, memberId);
-
             List<BoardPicture> mockPictures = Arrays.asList(
                     BoardPicture.builder().id(1L).build(),
                     BoardPicture.builder().id(2L).build());
+            Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
+
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
@@ -248,11 +248,10 @@ class BoardServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
-            Board mockBoard = createMockBoard(boardId, memberId);
-
             List<BoardPicture> mockPictures = Arrays.asList(
                     BoardPicture.builder().id(1L).build(),
                     BoardPicture.builder().id(2L).build());
+            Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
@@ -558,6 +557,64 @@ class BoardServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("임시 게시글 조회 서비스 테스트")
+    class TmpBoardDetail {
+
+        @Test
+        @DisplayName("성공")
+        void tmpBoardDetailSuccess() {
+            // given
+            Long memberId = 1L;
+            Long boardId = 1L;
+            List<BoardPicture> mockPictures = Arrays.asList(
+                    BoardPicture.builder().id(1L).build(),
+                    BoardPicture.builder().id(2L).build());
+            Member mockMember = Member.builder().id(memberId).build();
+            Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.of(mockBoard));
+
+            // when
+            BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(memberId);
+
+            // then
+            assertThat(boardDetail.getId()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("성공 - 임시저장 게시글이 존재하지 않음")
+        void tmpBoardDetailSuccessNoTmpBoards() {
+            // given
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.empty());
+
+            // when
+            BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(memberId);
+
+            // then
+            assertThat(boardDetail).isNull();
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자 존재하지 않음")
+        void tmpBoardDetailFailMemberNotFound() {
+            // given
+            Long memberId = 1L;
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.tmpBoardDetail(memberId))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+    }
+
     private MultipartFile[] createFiles(int size) {
         return IntStream.range(0, size)
                 .mapToObj(i -> new MockMultipartFile(
@@ -569,7 +626,7 @@ class BoardServiceTest {
                 .toArray(MultipartFile[]::new);
     }
 
-    private Board createMockBoard(Long boardId, Long memberId) {
+    private Board createMockBoard(Long boardId, Long memberId, List<BoardPicture> boardPictures) {
         return Board.builder()
                 .id(boardId)
                 .title("title")
@@ -583,6 +640,7 @@ class BoardServiceTest {
                 .visit(10)
                 .status(Status.SELL)
                 .tmp(false)
+                .boardPictures(boardPictures)
                 .build();
     }
 }
