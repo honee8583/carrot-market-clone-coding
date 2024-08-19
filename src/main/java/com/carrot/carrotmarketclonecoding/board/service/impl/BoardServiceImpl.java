@@ -78,6 +78,14 @@ public class BoardServiceImpl implements BoardService {
         boardPictureService.uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), board);
     }
 
+    @Override
+    public void delete(Long boardId, Long memberId) {
+        Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        isWriterOfBoard(board, member);
+        boardRepository.delete(board);
+    }
+
     private Category findCategoryIfCategoryIdNotNull(Long categoryId) {
         if (categoryId != null && categoryId > 0) {
             return categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);

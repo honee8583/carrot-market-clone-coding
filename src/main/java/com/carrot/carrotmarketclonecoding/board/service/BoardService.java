@@ -10,4 +10,6 @@ public interface BoardService {
     BoardDetailResponseDto detail(Long boardId, String sessionId);
 
     void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long memberId);
+
+    void delete(Long boardId, Long memberId);
 }

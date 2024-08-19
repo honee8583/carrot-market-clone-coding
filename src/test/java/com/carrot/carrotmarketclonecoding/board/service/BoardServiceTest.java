@@ -123,7 +123,7 @@ class BoardServiceTest {
         @DisplayName("실패 - 업로드 요청한 파일의 개수가 10개 초과")
         void fileUploadLimitExceeded() {
             // given
-            MultipartFile[] files = createFilesOver10();
+            MultipartFile[] files = createFiles(20);
             BoardRegisterRequestDto boardRegisterRequestDto = new BoardRegisterRequestDto();
             boardRegisterRequestDto.setCategoryId(1L);
             boardRegisterRequestDto.setPictures(files);
@@ -279,23 +279,6 @@ class BoardServiceTest {
             assertThatThrownBy(() -> boardService.detail(boardId, "sessionId:" + memberId))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
-        }
-
-        private Board createMockBoard(Long boardId, Long memberId) {
-            return Board.builder()
-                    .id(boardId)
-                    .title("title")
-                    .member(Member.builder().id(memberId).nickname("member").build())
-                    .category(Category.builder().id(1L).name("category").build())
-                    .method(Method.SELL)
-                    .price(20000)
-                    .suggest(false)
-                    .description("description")
-                    .place("place")
-                    .visit(10)
-                    .status(Status.SELL)
-                    .tmp(false)
-                    .build();
         }
     }
 
@@ -466,7 +449,7 @@ class BoardServiceTest {
             Category mockCategory = Category.builder().id(categoryId).build();
             Board mockBoard = Board.builder().id(boardId).member(mockMember).category(mockCategory).tmp(false).build();
 
-            MultipartFile[] files = createFilesOver10();
+            MultipartFile[] files = createFiles(20);
             BoardUpdateRequestDto updateRequestDto = new BoardUpdateRequestDto();
             updateRequestDto.setNewPictures(files);
             updateRequestDto.setCategoryId(categoryId);
@@ -484,14 +467,6 @@ class BoardServiceTest {
         }
 
         private BoardUpdateRequestDto createUpdateRequestDto() {
-            MultipartFile[] newPictures = {
-                    new MockMultipartFile(
-                            "pictures",
-                            "test1.jpg",
-                            "image/jpeg",
-                            "test data".getBytes())
-            };
-
             return BoardUpdateRequestDto.builder()
                     .title("title")
                     .categoryId(1L)
@@ -501,13 +476,90 @@ class BoardServiceTest {
                     .description("description")
                     .place("place")
                     .removePictures(new Long[]{1L, 2L, 3L})
-                    .newPictures(newPictures)
+                    .newPictures(createFiles(10))
                     .build();
         }
     }
 
-    private MultipartFile[] createFilesOver10() {
-        return IntStream.range(0, 20)
+    @Nested
+    @DisplayName("게시글 삭제 서비스 테스트")
+    class DeleteBoard {
+
+        @Test
+        @DisplayName("성공")
+        void deleteBoardSuccess() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Board mockBoard = Board.builder().id(boardId).member(mockMember).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+
+            // when
+            boardService.delete(boardId, memberId);
+
+            // then
+            verify(boardRepository).delete(mockBoard);
+        }
+
+        @Test
+        @DisplayName("실패 - 게시글 존재하지 않음")
+        void deleteBoardFailBoardNotFound() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(BoardNotFoundException.class)
+                    .hasMessage(BOARD_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자 존재하지 않음")
+        void deleteBoardFailMemberNotFound() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Board mockBoard = Board.builder().id(boardId).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        void deleteBoardFailMemberIsNotWriter() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            Board mockBoard = Board.builder().id(boardId).member(Member.builder().id(2L).build()).build();
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+                    .isInstanceOf(UnauthorizedAccessException.class)
+                    .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
+        }
+    }
+
+    private MultipartFile[] createFiles(int size) {
+        return IntStream.range(0, size)
                 .mapToObj(i -> new MockMultipartFile(
                         "file" + i,
                         "file" + i + ".png",
@@ -515,5 +567,22 @@ class BoardServiceTest {
                         ("Picture" + i).getBytes()
                 ))
                 .toArray(MultipartFile[]::new);
+    }
+
+    private Board createMockBoard(Long boardId, Long memberId) {
+        return Board.builder()
+                .id(boardId)
+                .title("title")
+                .member(Member.builder().id(memberId).nickname("member").build())
+                .category(Category.builder().id(1L).name("category").build())
+                .method(Method.SELL)
+                .price(20000)
+                .suggest(false)
+                .description("description")
+                .place("place")
+                .visit(10)
+                .status(Status.SELL)
+                .tmp(false)
+                .build();
     }
 }

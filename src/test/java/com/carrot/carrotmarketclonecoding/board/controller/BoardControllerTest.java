@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -361,6 +362,79 @@ class BoardControllerTest {
                             .param("suggest", "true")
                             .param("description", "description2")
                             .param("place", "place2"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status", equalTo(403)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 삭제 컨트롤러 테스트")
+    class DeleteBoard {
+
+        @Test
+        @DisplayName("성공")
+        void deleteBoardSuccess() throws Exception {
+            // given
+            Long boardId = 1L;
+
+            // when
+            doNothing().when(boardService).delete(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/board/{id}", boardId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_DELETE_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 게시글이 존재하지 않음")
+        void deleteBoardFailBoardNotFound() throws Exception {
+            // given
+            Long boardId = 1L;
+
+            // when
+            doThrow(BoardNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/board/{id}", boardId))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void deleteBoardFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/board/{id}", 1L))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        void deleteBoardFailMemberIsNotWriter() throws Exception {
+            // given
+            // when
+            doThrow(UnauthorizedAccessException.class).when(boardService).delete(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/board/{id}", 1L))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.status", equalTo(403)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
