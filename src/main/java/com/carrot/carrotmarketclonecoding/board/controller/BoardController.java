@@ -55,6 +55,16 @@ public class BoardController {
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_DETAIL_SUCCESS.getMessage(), boardDetail));
     }
 
+    @GetMapping("/tmp")
+    public ResponseEntity<?> tmpDetail() {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(memberId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_TMP_SUCCESS.getMessage(), boardDetail));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") Long boardId, @ModelAttribute @Valid BoardUpdateRequestDto updateRequestDto) {
         // TODO memberId -> JWT.getMemberId()
