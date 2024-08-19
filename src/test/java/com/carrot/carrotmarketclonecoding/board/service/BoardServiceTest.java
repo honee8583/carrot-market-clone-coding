@@ -123,7 +123,7 @@ class BoardServiceTest {
         @DisplayName("실패 - 업로드 요청한 파일의 개수가 10개 초과")
         void fileUploadLimitExceeded() {
             // given
-            MultipartFile[] files = createFilesOver10();
+            MultipartFile[] files = createFiles(20);
             BoardRegisterRequestDto boardRegisterRequestDto = new BoardRegisterRequestDto();
             boardRegisterRequestDto.setCategoryId(1L);
             boardRegisterRequestDto.setPictures(files);
@@ -279,23 +279,6 @@ class BoardServiceTest {
             assertThatThrownBy(() -> boardService.detail(boardId, "sessionId:" + memberId))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
-        }
-
-        private Board createMockBoard(Long boardId, Long memberId) {
-            return Board.builder()
-                    .id(boardId)
-                    .title("title")
-                    .member(Member.builder().id(memberId).nickname("member").build())
-                    .category(Category.builder().id(1L).name("category").build())
-                    .method(Method.SELL)
-                    .price(20000)
-                    .suggest(false)
-                    .description("description")
-                    .place("place")
-                    .visit(10)
-                    .status(Status.SELL)
-                    .tmp(false)
-                    .build();
         }
     }
 
@@ -466,7 +449,7 @@ class BoardServiceTest {
             Category mockCategory = Category.builder().id(categoryId).build();
             Board mockBoard = Board.builder().id(boardId).member(mockMember).category(mockCategory).tmp(false).build();
 
-            MultipartFile[] files = createFilesOver10();
+            MultipartFile[] files = createFiles(20);
             BoardUpdateRequestDto updateRequestDto = new BoardUpdateRequestDto();
             updateRequestDto.setNewPictures(files);
             updateRequestDto.setCategoryId(categoryId);
@@ -484,14 +467,6 @@ class BoardServiceTest {
         }
 
         private BoardUpdateRequestDto createUpdateRequestDto() {
-            MultipartFile[] newPictures = {
-                    new MockMultipartFile(
-                            "pictures",
-                            "test1.jpg",
-                            "image/jpeg",
-                            "test data".getBytes())
-            };
-
             return BoardUpdateRequestDto.builder()
                     .title("title")
                     .categoryId(1L)
@@ -501,7 +476,7 @@ class BoardServiceTest {
                     .description("description")
                     .place("place")
                     .removePictures(new Long[]{1L, 2L, 3L})
-                    .newPictures(newPictures)
+                    .newPictures(createFiles(10))
                     .build();
         }
     }
@@ -583,8 +558,8 @@ class BoardServiceTest {
         }
     }
 
-    private MultipartFile[] createFilesOver10() {
-        return IntStream.range(0, 20)
+    private MultipartFile[] createFiles(int size) {
+        return IntStream.range(0, size)
                 .mapToObj(i -> new MockMultipartFile(
                         "file" + i,
                         "file" + i + ".png",
@@ -592,5 +567,22 @@ class BoardServiceTest {
                         ("Picture" + i).getBytes()
                 ))
                 .toArray(MultipartFile[]::new);
+    }
+
+    private Board createMockBoard(Long boardId, Long memberId) {
+        return Board.builder()
+                .id(boardId)
+                .title("title")
+                .member(Member.builder().id(memberId).nickname("member").build())
+                .category(Category.builder().id(1L).name("category").build())
+                .method(Method.SELL)
+                .price(20000)
+                .suggest(false)
+                .description("description")
+                .place("place")
+                .visit(10)
+                .status(Status.SELL)
+                .tmp(false)
+                .build();
     }
 }
