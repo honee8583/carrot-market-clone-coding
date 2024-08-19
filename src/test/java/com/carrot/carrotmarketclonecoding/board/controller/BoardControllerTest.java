@@ -18,8 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
-import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
@@ -29,7 +27,6 @@ import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundExcep
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +38,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(BoardController.class)
 class BoardControllerTest {
@@ -439,6 +435,64 @@ class BoardControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(403)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("임시저장된 게시글 조회 컨트롤러 테스트")
+    class TmpBoardDetail {
+
+        @Test
+        @DisplayName("성공")
+        void boardDetailSuccess() throws Exception {
+            // given
+            BoardDetailResponseDto response = BoardDetailResponseDto.builder()
+                    .id(1L)
+                    .build();
+
+            // when
+            when(boardService.tmpBoardDetail(anyLong())).thenReturn(response);
+
+            // then
+            mvc.perform(get("/board/tmp"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_TMP_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.id", equalTo(response.getId().intValue())));
+        }
+
+        @Test
+        @DisplayName("성공 - 임시저장된 게시물 없음")
+        void boardDetailSuccessNotTmpBoard() throws Exception {
+            // given
+            // when
+            when(boardService.tmpBoardDetail(anyLong())).thenReturn(null);
+
+            // then
+            mvc.perform(get("/board/tmp"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_TMP_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패")
+        void boardDetailFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).tmpBoardDetail(anyLong());
+
+            // then
+            mvc.perform(get("/board/tmp")
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }

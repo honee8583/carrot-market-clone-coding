@@ -41,7 +41,7 @@ public class BoardResponseDto {
         private int like;
         private int visit;
 
-        public static BoardDetailResponseDto createBoardDetail(Board board, List<BoardPicture> pictures, int like) {
+        public static BoardDetailResponseDto createBoardDetail(Board board, int like) {
             return BoardDetailResponseDto.builder()
                     .id(board.getId())
                     .writer(board.getMember().getNickname())
@@ -55,7 +55,7 @@ public class BoardResponseDto {
                     .suggest(board.getSuggest())
                     .createDate(board.getCreateDate())
                     .description(board.getDescription())
-                    .pictures(pictures.stream()
+                    .pictures(board.getBoardPictures().stream()
                             .map(PictureResponseDto::createPictureDetail)
                             .collect(Collectors.toList()))
                     .like(like)
