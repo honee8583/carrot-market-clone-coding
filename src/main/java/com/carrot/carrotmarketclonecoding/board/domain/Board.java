@@ -24,10 +24,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @Builder
-@ToString
+@ToString(exclude = "boardPictures")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -65,6 +66,7 @@ public class Board extends BaseEntity {
 
     private Boolean tmp;
 
+    @BatchSize(size = 1000)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
     private List<BoardPicture> boardPictures = new ArrayList<>();
 

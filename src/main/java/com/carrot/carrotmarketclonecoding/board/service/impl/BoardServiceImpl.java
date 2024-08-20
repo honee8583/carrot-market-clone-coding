@@ -4,8 +4,10 @@ import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
@@ -16,11 +18,13 @@ import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundExceptio
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
+import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,6 +78,12 @@ public class BoardServiceImpl implements BoardService {
         }
 
         return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDto<BoardSearchResponseDto> search(BoardSearchRequestDto searchRequestDto, Pageable pageable) {
+        return new PageResponseDto<>(boardRepository.searchBoards(searchRequestDto, pageable));
     }
 
     @Override
