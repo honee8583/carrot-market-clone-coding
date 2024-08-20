@@ -81,4 +81,32 @@ public class BoardResponseDto {
                     .build();
         }
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @ToString
+    public static class BoardSearchResponseDto {
+        private Long id;
+        private String pictureUrl;
+        private String title;
+        private String place;
+        private LocalDateTime createDate;
+        private int price;
+        private int like;
+
+        public static BoardSearchResponseDto responseToEntity(Board board, int like) {
+            return BoardSearchResponseDto.builder()
+                    .id(board.getId())
+                    .pictureUrl(board.getBoardPictures() != null && board.getBoardPictures().size() > 0 ? board.getBoardPictures().get(0).getPictureUrl() : null)
+                    .title(board.getTitle())
+                    .place(board.getPlace())
+                    .createDate(board.getCreateDate())
+                    .price(board.getPrice())
+                    .like(like)
+                    .build();
+        }
+    }
 }

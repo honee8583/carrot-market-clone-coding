@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.board.dto;
 import static com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.common.validation.ValidEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -42,12 +43,6 @@ public class BoardRequestDto {
 
         @NotEmpty(message = PLACE_NOT_VALID)
         private String place;
-
-        public void setPriceZeroIfMethodIsShare() {
-            if (this.method == Method.SHARE) {
-                this.price = 0;
-            }
-        }
     }
 
     @Getter
@@ -81,5 +76,19 @@ public class BoardRequestDto {
 
         private MultipartFile[] newPictures;
         private Long[] removePictures;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BoardSearchRequestDto {
+        private Long categoryId;
+        private String keyword;
+        private Integer minPrice;
+        private Integer maxPrice;
+        private SearchOrder order;
     }
 }
