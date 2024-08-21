@@ -97,7 +97,7 @@ public class BoardResponseDto {
         private int price;
         private int like;
 
-        public static BoardSearchResponseDto responseToEntity(Board board, int like) {
+        public static BoardSearchResponseDto getSearchResult(Board board, int like) {
             return BoardSearchResponseDto.builder()
                     .id(board.getId())
                     .pictureUrl(board.getBoardPictures() != null && board.getBoardPictures().size() > 0 ? board.getBoardPictures().get(0).getPictureUrl() : null)
