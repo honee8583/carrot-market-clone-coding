@@ -7,7 +7,6 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchR
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
-import com.carrot.carrotmarketclonecoding.board.service.BoardLikeService;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
@@ -27,12 +26,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/board")
 @RestController
+@RequestMapping("/board")
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
-    private final BoardLikeService boardLikeService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@ModelAttribute @Valid BoardRegisterRequestDto registerRequestDto) {
@@ -92,19 +90,11 @@ public class BoardController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Long boardId) {
+        // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
         boardService.delete(boardId, memberId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_DELETE_SUCCESS.getMessage(), null));
-    }
-
-    @PostMapping("/like/{id}")
-    public ResponseEntity<?> addBoardLike(@PathVariable("id") Long boardId) {
-        Long memberId = 1L;
-        boardLikeService.add(boardId, memberId);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ResponseResult.success(HttpStatus.CREATED, ADD_BOARD_LIKE_SUCCESS.getMessage(), null));
     }
 }

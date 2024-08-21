@@ -8,6 +8,7 @@ import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepositoryCustom;
+import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -49,12 +50,41 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
         JPAQuery<Long> countQuery = queryFactory
                 .select(board.count())
                 .from(board)
-                .where(priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()))
-                .where(categoryEq(searchRequestDto.getCategoryId()));
+                .where(priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
+                        categoryEq(searchRequestDto.getCategoryId()),
+                        titleContains(searchRequestDto.getKeyword()));
 
         return PageableExecutionUtils.getPage(boards.stream().map(t ->
-                BoardSearchResponseDto.responseToEntity(t.get(board), t.get(boardLike.count()).intValue()))
-                .collect(Collectors.toList()), pageable, countQuery::fetchOne);
+                BoardSearchResponseDto.getSearchResult(
+                        t.get(board),
+                        t.get(boardLike.count()).intValue())
+                ).collect(Collectors.toList()), pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Page<BoardSearchResponseDto> searchMemberLikedBoards(Member member, Pageable pageable) {
+        List<Tuple> boards = queryFactory
+                .select(board, boardLike.count())
+                .from(board)
+                .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
+                .where(boardLike.member.eq(member))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .groupBy(board.id)
+                .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(board.count())
+                .from(board)
+                .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
+                .where(boardLike.member.eq(member))
+                .groupBy(board.id);
+
+        return PageableExecutionUtils.getPage(boards.stream().map(t ->
+                        BoardSearchResponseDto.getSearchResult(
+                                t.get(board),
+                                t.get(boardLike.count()).intValue())
+                ).collect(Collectors.toList()), pageable, countQuery::fetchOne);
     }
 
     private BooleanExpression titleContains(String keyword) {

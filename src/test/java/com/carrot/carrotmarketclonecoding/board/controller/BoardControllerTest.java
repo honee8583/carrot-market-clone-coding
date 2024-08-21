@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
-import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
@@ -47,9 +46,6 @@ class BoardControllerTest {
 
     @MockBean
     private BoardServiceImpl boardService;
-
-    @MockBean
-    private BoardLikeServiceImpl boardLikeService;
 
     @Nested
     @DisplayName("게시글 작성 컨트롤러 테스트")
@@ -489,59 +485,6 @@ class BoardControllerTest {
             // then
             mvc.perform(get("/board/tmp")
                     .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
-        }
-    }
-
-    @Nested
-    @DisplayName("관심게시글 등록 컨트롤러 테스트")
-    class AddBoardLike {
-
-        @Test
-        @DisplayName("성공")
-        void addBoardLikeSuccess() throws Exception {
-            // given
-            // when
-            doNothing().when(boardLikeService).add(anyLong(), anyLong());
-
-            // then
-            mvc.perform(post("/board/like/{id}", 1L))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.status", equalTo(201)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(ADD_BOARD_LIKE_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
-        }
-
-        @Test
-        @DisplayName("실패 - 게시글이 존재하지 않음")
-        void addBoardLikeFailBoardNotFound() throws Exception {
-            // given
-            // when
-            doThrow(BoardNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
-
-            // then
-            mvc.perform(post("/board/like/{id}", 1L))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
-        }
-
-        @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
-        void addBoardLikeFailMemberNotFound() throws Exception {
-            // given
-            // when
-            doThrow(MemberNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
-
-            // then
-            mvc.perform(post("/board/like/{id}", 1L))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
