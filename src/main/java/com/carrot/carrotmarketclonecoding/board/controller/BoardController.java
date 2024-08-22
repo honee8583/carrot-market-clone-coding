@@ -72,10 +72,20 @@ public class BoardController {
 
     @GetMapping
     public ResponseEntity<?> search(BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
-        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(searchRequestDto, pageable);
+        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(null, searchRequestDto, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_DETAIL_SUCCESS.getMessage(), boards));
+                .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<?> searchBoardsByStatus(BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(memberId, searchRequestDto, pageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
     }
 
     @PatchMapping("/{id}")

@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
@@ -26,6 +27,8 @@ import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundExcep
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
+import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -257,6 +262,103 @@ class BoardControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 검색 컨트롤러 테스트")
+    class SearchBoard {
+
+        @Test
+        @DisplayName("성공")
+        void searchBoardsSuccess() throws Exception {
+            // given
+            PageResponseDto<BoardSearchResponseDto> response = new PageResponseDto<>(
+                    new PageImpl<>(
+                            Arrays.asList(
+                                    new BoardSearchResponseDto(),
+                                    new BoardSearchResponseDto()
+                            ),
+                            PageRequest.of(0, 10),
+                            2
+                    )
+            );
+
+            // when
+            when(boardService.search(any(), any(), any())).thenReturn(response);
+
+            // then
+            mvc.perform(get("/board"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.contents.size()", equalTo(2)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void searchBoardsMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
+
+            // then
+            mvc.perform(get("/board"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글상태 검색 컨트롤러 테스트")
+    class SearchBoardByStatus {
+
+        @Test
+        @DisplayName("성공")
+        void searchBoardsByStatusSuccess() throws Exception {
+            // given
+            PageResponseDto<BoardSearchResponseDto> response = new PageResponseDto<>(
+                    new PageImpl<>(
+                            Arrays.asList(
+                                    new BoardSearchResponseDto(),
+                                    new BoardSearchResponseDto()
+                            ),
+                            PageRequest.of(0, 10),
+                            2
+                    )
+            );
+
+            // when
+            when(boardService.search(any(), any(), any())).thenReturn(response);
+
+            // then
+            mvc.perform(get("/board/status")
+                    .param("status", "SELL"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.contents.size()", equalTo(2)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void searchBoardsByStatusFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
+
+            // then
+            mvc.perform(get("/board/status"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }

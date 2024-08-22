@@ -5,6 +5,7 @@ import static com.carrot.carrotmarketclonecoding.board.domain.QBoardLike.boardLi
 import static com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepositoryCustom;
@@ -33,14 +34,19 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
     }
 
     @Override
-    public Page<BoardSearchResponseDto> searchBoards(BoardSearchRequestDto searchRequestDto, Pageable pageable) {
+    public Page<BoardSearchResponseDto> findAllByMemberAndSearchRequestDto(Member member, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         List<Tuple> boards = queryFactory
                 .select(board, boardLike.count())
                 .from(board)
                 .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
-                .where(titleContains(searchRequestDto.getKeyword()),
+                .where(
+                        memberEq(member),
+                        titleContains(searchRequestDto.getKeyword()),
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
-                        categoryEq(searchRequestDto.getCategoryId()))
+                        categoryEq(searchRequestDto.getCategoryId()),
+                        statusEq(searchRequestDto.getStatus()),
+                        board.tmp.eq(false)
+                )
                 .orderBy(getOrder(searchRequestDto.getOrder()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -85,6 +91,14 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                                 t.get(board),
                                 t.get(boardLike.count()).intValue())
                 ).collect(Collectors.toList()), pageable, countQuery::fetchOne);
+    }
+
+    private BooleanExpression memberEq(Member member) {
+        return member != null ? board.member.eq(member) : null;
+    }
+
+    private BooleanExpression statusEq(Status status) {
+        return status != null ? board.status.eq(status) : null;
     }
 
     private BooleanExpression titleContains(String keyword) {

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,8 +18,10 @@ import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
@@ -30,6 +33,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundExcep
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
+import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Arrays;
@@ -44,6 +48,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -278,6 +286,49 @@ class BoardServiceTest {
             assertThatThrownBy(() -> boardService.detail(boardId, "sessionId:" + memberId))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 검색 서비스 테스트")
+    class SearchBoards {
+
+        @Test
+        @DisplayName("성공")
+        void searchBoardsSuccess() {
+            // given
+            Long memberId = 1L;
+            Member mockMember = Member.builder().id(memberId).build();
+            List<BoardSearchResponseDto> searchResponseDtos = Arrays.asList(
+                    new BoardSearchResponseDto(),
+                    new BoardSearchResponseDto()
+            );
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(searchResponseDtos, pageable, 2);
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(boardRepository.findAllByMemberAndSearchRequestDto(any(), any(), any())).thenReturn(searchResult);
+
+            // when
+            PageResponseDto<BoardSearchResponseDto> response = boardService.search(memberId, new BoardSearchRequestDto(), pageable);
+
+            // then
+            assertThat(response.getContents().size()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("실패 - 존재하지 않는 사용자")
+        void searchBoardsFailMemberNotFound() {
+            // given
+            Long memberId = 1L;
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.search(memberId, mock(BoardSearchRequestDto.class), mock(Pageable.class)))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
     }
 
