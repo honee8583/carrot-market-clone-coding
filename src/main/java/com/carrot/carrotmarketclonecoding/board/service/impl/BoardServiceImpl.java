@@ -82,8 +82,12 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<BoardSearchResponseDto> search(BoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        return new PageResponseDto<>(boardRepository.searchBoards(searchRequestDto, pageable));
+    public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
+        Member member = null;
+        if (memberId != null) {
+            member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        }
+        return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
     }
 
     @Override
