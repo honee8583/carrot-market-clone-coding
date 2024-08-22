@@ -4,6 +4,7 @@ import static com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegis
 
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.common.validation.ValidEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -90,5 +91,6 @@ public class BoardRequestDto {
         private Integer minPrice;
         private Integer maxPrice;
         private SearchOrder order;
+        private Status status;
     }
 }
