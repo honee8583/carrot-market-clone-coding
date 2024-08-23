@@ -28,8 +28,9 @@ import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitExcept
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -274,16 +275,7 @@ class BoardControllerTest {
         @DisplayName("성공")
         void searchBoardsSuccess() throws Exception {
             // given
-            PageResponseDto<BoardSearchResponseDto> response = new PageResponseDto<>(
-                    new PageImpl<>(
-                            Arrays.asList(
-                                    new BoardSearchResponseDto(),
-                                    new BoardSearchResponseDto()
-                            ),
-                            PageRequest.of(0, 10),
-                            2
-                    )
-            );
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
 
             // when
             when(boardService.search(any(), any(), any())).thenReturn(response);
@@ -322,16 +314,7 @@ class BoardControllerTest {
         @DisplayName("성공")
         void searchBoardsByStatusSuccess() throws Exception {
             // given
-            PageResponseDto<BoardSearchResponseDto> response = new PageResponseDto<>(
-                    new PageImpl<>(
-                            Arrays.asList(
-                                    new BoardSearchResponseDto(),
-                                    new BoardSearchResponseDto()
-                            ),
-                            PageRequest.of(0, 10),
-                            2
-                    )
-            );
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
 
             // when
             when(boardService.search(any(), any(), any())).thenReturn(response);
@@ -355,6 +338,53 @@ class BoardControllerTest {
 
             // then
             mvc.perform(get("/board/status"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("나의 숨김 게시글 목록 조회 컨트롤러 테스트")
+    class HiddenBoards {
+
+        @Test
+        @DisplayName("성공")
+        void searchMyHiddenBoardsSuccess() throws Exception {
+            // given
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(11, 0, 10, 11);
+
+            // when
+            when(boardService.search(any(), any(), any())).thenReturn(response);
+
+            // then
+            mvc.perform(get("/board/hidden")
+                    .param("hide", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.totalPage", equalTo(2)))
+                    .andExpect(jsonPath("$.data.totalElements", equalTo(11)))
+                    .andExpect(jsonPath("$.data.contents.size()", equalTo(11)))
+                    .andExpect(jsonPath("$.data.first", equalTo(true)))
+                    .andExpect(jsonPath("$.data.last", equalTo(false)))
+                    .andExpect(jsonPath("$.data.numberOfElements", equalTo(11)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void searchMyHiddenBoardsFailMemberNotFound() throws Exception {
+            // given
+
+            // when
+            doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
+
+            // then
+            mvc.perform(get("/board/hidden")
+                    .param("hide", "true"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -593,5 +623,16 @@ class BoardControllerTest {
                     .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
+    }
+
+    private PageResponseDto<BoardSearchResponseDto> createBoardSearchResponse(int length, int page, int size, int total) {
+        List<BoardSearchResponseDto> boardSearchResponse = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            boardSearchResponse.add(new BoardSearchResponseDto());
+        }
+
+        return new PageResponseDto<>(
+                new PageImpl<>(boardSearchResponse, PageRequest.of(page, size), total)
+        );
     }
 }

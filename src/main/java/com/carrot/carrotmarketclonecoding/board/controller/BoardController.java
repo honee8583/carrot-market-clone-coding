@@ -88,6 +88,16 @@ public class BoardController {
                 .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
     }
 
+    @GetMapping("/hidden")
+    public ResponseEntity<?> searchHiddenBoards(Boolean hide, @PageableDefault(size = 10) Pageable pageable) {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(memberId, BoardSearchRequestDto.builder().hide(hide).build(), pageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") Long boardId, @ModelAttribute @Valid BoardUpdateRequestDto updateRequestDto) {
         // TODO memberId -> JWT.getMemberId()

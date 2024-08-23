@@ -92,5 +92,6 @@ public class BoardRequestDto {
         private Integer maxPrice;
         private SearchOrder order;
         private Status status;
+        private Boolean hide;
     }
 }
