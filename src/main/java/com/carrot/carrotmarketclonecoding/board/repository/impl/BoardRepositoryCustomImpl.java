@@ -45,6 +45,7 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),
                         statusEq(searchRequestDto.getStatus()),
+                        hideEq(searchRequestDto.getHide()),
                         board.tmp.eq(false)
                 )
                 .orderBy(getOrder(searchRequestDto.getOrder()))
@@ -53,18 +54,23 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .groupBy(board.id)
                 .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
+        JPAQuery<Long> total = queryFactory
                 .select(board.count())
                 .from(board)
-                .where(priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
+                .where(
+                        memberEq(member),
+                        titleContains(searchRequestDto.getKeyword()),
+                        priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),
-                        titleContains(searchRequestDto.getKeyword()));
+                        statusEq(searchRequestDto.getStatus()),
+                        hideEq(searchRequestDto.getHide()),
+                        board.tmp.eq(false));
 
         return PageableExecutionUtils.getPage(boards.stream().map(t ->
                 BoardSearchResponseDto.getSearchResult(
                         t.get(board),
                         t.get(boardLike.count()).intValue())
-                ).collect(Collectors.toList()), pageable, countQuery::fetchOne);
+                ).collect(Collectors.toList()), pageable, total::fetchOne);
     }
 
     @Override
@@ -79,7 +85,7 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .groupBy(board.id)
                 .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory
+        JPAQuery<Long> total = queryFactory
                 .select(board.count())
                 .from(board)
                 .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
@@ -90,7 +96,11 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         BoardSearchResponseDto.getSearchResult(
                                 t.get(board),
                                 t.get(boardLike.count()).intValue())
-                ).collect(Collectors.toList()), pageable, countQuery::fetchOne);
+                ).collect(Collectors.toList()), pageable, total::fetchOne);
+    }
+
+    private BooleanExpression hideEq(Boolean hide) {
+        return hide != null ? board.hide.eq(hide) : null;
     }
 
     private BooleanExpression memberEq(Member member) {
