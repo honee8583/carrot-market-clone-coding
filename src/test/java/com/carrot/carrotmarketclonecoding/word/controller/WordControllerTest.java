@@ -2,6 +2,7 @@ package com.carrot.carrotmarketclonecoding.word.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.INPUT_NOT_VALID;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_WORD_OVER_LIMIT;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_WORD_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_MEMBER_WORDS;
 import static org.hamcrest.Matchers.equalTo;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.dto.validation.WordRegisterValidationMessage.MESSAGE;
@@ -100,6 +102,24 @@ class WordControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 자주쓰는문구의 개수가 30개를 초과함")
+        void addWordFailMemberWordOverLimit() throws Exception {
+            // given
+            // when
+            doThrow(MemberWordLimitException.class).when(wordService).add(anyLong(), any());
+
+            // then
+            mvc.perform(post("/word")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(new WordRegisterRequestDto("word"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_WORD_OVER_LIMIT.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }

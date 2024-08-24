@@ -1,6 +1,7 @@
 package com.carrot.carrotmarketclonecoding.word.service;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_WORD_OVER_LIMIT;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.word.domain.Word;
@@ -53,6 +55,7 @@ class WordServiceTest {
             WordRegisterRequestDto registerRequestDto = new WordRegisterRequestDto("word");
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(wordRepository.countByMember(any())).thenReturn(10);
 
             // when
             wordService.add(memberId, registerRequestDto);
@@ -78,6 +81,24 @@ class WordServiceTest {
             assertThatThrownBy(() -> wordService.add(memberId, registerRequestDto))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 자주쓰는문구의 개수가 30개를 초과함")
+        void addWordFailMemberWordOverLimit() {
+            // given
+            Long memberId = 1L;
+            Member mockMember = mock(Member.class);
+            WordRegisterRequestDto registerRequestDto = new WordRegisterRequestDto("word");
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(wordRepository.countByMember(any())).thenReturn(30);
+
+            // when
+            // then
+            assertThatThrownBy(() -> wordService.add(memberId, registerRequestDto))
+                    .isInstanceOf(MemberWordLimitException.class)
+                    .hasMessage(MEMBER_WORD_OVER_LIMIT.getMessage());
         }
     }
 

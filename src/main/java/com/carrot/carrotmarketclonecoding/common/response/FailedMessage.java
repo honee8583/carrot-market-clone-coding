@@ -15,7 +15,8 @@ public enum FailedMessage {
     FILE_NOT_EXISTS("파일이 존재하지 않습니다!"),
     FILE_UPLOAD_LIMIT("업로드 가능한 파일은 10개까지입니다!"),
     UNAUTHORIZED_ACCESS("접근권한을 가지고 있지 않습니다!"),
-    MEMBER_ALREADY_LIKED_BOARD("이미 관심게시글로 등록한 게시글입니다!");
+    MEMBER_ALREADY_LIKED_BOARD("이미 관심게시글로 등록한 게시글입니다!"),
+    MEMBER_WORD_OVER_LIMIT("자주쓰는문구의 개수는 30개를 초과할 수 없습니다!");
 
     private final String message;
 }
