@@ -17,7 +17,8 @@ public enum SuccessMessage {
     SEARCH_BOARDS_SUCCESS("게시글 검색에 성공하였습니다!"),
     ADD_WORD_SUCCESS("자주쓰는문구 추가에 성공하였습니다!"),
     GET_MEMBER_WORDS("사용자의 자주쓰는문구 목록 조회에 성공하였습니다!"),
-    UPDATE_WORD_SUCCESS("자주쓰는문구 수정에 성공하였습니다!");
+    UPDATE_WORD_SUCCESS("자주쓰는문구 수정에 성공하였습니다!"),
+    REMOVE_WORD_SUCCESS("자주쓰는문구 삭제에 성공하였습니다!");
 
     private final String message;
 }
