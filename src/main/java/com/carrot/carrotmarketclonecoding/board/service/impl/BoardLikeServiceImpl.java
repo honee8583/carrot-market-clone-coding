@@ -7,10 +7,12 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardLikeService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberAlreadyLikedBoardException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,11 +30,16 @@ public class BoardLikeServiceImpl implements BoardLikeService {
     public void add(Long boardId, Long memberId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        BoardLike boardLike = BoardLike.builder()
+
+        Optional<BoardLike> boardLike = boardLikeRepository.findByBoardAndMember(board, member);
+        if (boardLike.isPresent()) {
+            throw new MemberAlreadyLikedBoardException();
+        }
+
+        boardLikeRepository.save(BoardLike.builder()
                 .board(board)
                 .member(member)
-                .build();
-        boardLikeRepository.save(boardLike);
+                .build());
     }
 
     @Override
