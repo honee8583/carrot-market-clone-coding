@@ -2,10 +2,11 @@ package com.carrot.carrotmarketclonecoding.word.service.impl;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
+import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.word.domain.Word;
-import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto;
 import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.repository.WordRepository;
 import com.carrot.carrotmarketclonecoding.word.service.WordService;
@@ -24,10 +25,10 @@ public class WordServiceImpl implements WordService {
     private static final int WORD_LIMIT = 30;
 
     @Override
-    public void add(Long memberId, WordRegisterRequestDto registerRequestDto) {
+    public void add(Long memberId, WordRequestDto wordRequestDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         isWordTotalOverLimit(wordRepository.countByMember(member));
-        Word word = Word.createWord(registerRequestDto, member);
+        Word word = Word.createWord(wordRequestDto, member);
         wordRepository.save(word);
     }
 
@@ -37,6 +38,13 @@ public class WordServiceImpl implements WordService {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         List<Word> words = wordRepository.findAllByMember(member);
         return words.stream().map(WordListResponseDto::createWordListResponseDto).toList();
+    }
+
+    @Override
+    public void update(Long memberId, Long wordId, WordRequestDto wordRequestDto) {
+        memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Word word = wordRepository.findById(wordId).orElseThrow(WordNotFoundException::new);
+        word.update(wordRequestDto);
     }
 
     private void isWordTotalOverLimit(int total) {
