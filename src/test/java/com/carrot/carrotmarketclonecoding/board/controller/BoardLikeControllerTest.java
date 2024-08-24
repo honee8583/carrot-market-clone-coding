@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberAlreadyLikedBoardException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import java.util.Arrays;
@@ -88,6 +89,22 @@ class BoardLikeControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 이미 관심게시글로 등록한 게시글임")
+        void addBoardLikeFailMemberAlreadyLikedBoard() throws Exception {
+            // given
+            // when
+            doThrow(MemberAlreadyLikedBoardException.class).when(boardLikeService).add(anyLong(), anyLong());
+
+            // then
+            mvc.perform(post("/board/like/{id}", 1L))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_ALREADY_LIKED_BOARD.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }
