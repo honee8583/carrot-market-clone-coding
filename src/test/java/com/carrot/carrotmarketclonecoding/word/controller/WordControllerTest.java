@@ -1,10 +1,7 @@
 package com.carrot.carrotmarketclonecoding.word.controller;
 
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.INPUT_NOT_VALID;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_WORD_OVER_LIMIT;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_WORD_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_MEMBER_WORDS;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -13,12 +10,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
-import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
+import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto;
 import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.dto.validation.WordRegisterValidationMessage.MESSAGE;
 import com.carrot.carrotmarketclonecoding.word.service.impl.WordServiceImpl;
@@ -59,7 +58,7 @@ class WordControllerTest {
             // then
             mvc.perform(post("/word")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(new WordRegisterRequestDto("word"))))
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.status", equalTo(201)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -78,7 +77,7 @@ class WordControllerTest {
             // then
             mvc.perform(post("/word")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(new WordRegisterRequestDto())))
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto())))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -97,7 +96,7 @@ class WordControllerTest {
             // then
             mvc.perform(post("/word")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(new WordRegisterRequestDto("word"))))
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -115,7 +114,7 @@ class WordControllerTest {
             // then
             mvc.perform(post("/word")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(new WordRegisterRequestDto("word"))))
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -162,6 +161,65 @@ class WordControllerTest {
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
                     .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName("자주쓰는문구 수정 컨트롤러 테스트")
+    class UpdateWord {
+
+        @Test
+        @DisplayName("성공")
+        void updateWordSuccess() throws Exception {
+            // given
+            // when
+            doNothing().when(wordService).update(anyLong(), anyLong(), any());
+
+            // then
+            mvc.perform(put("/word/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(UPDATE_WORD_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void updateWordFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(wordService).update(anyLong(), anyLong(), any());
+
+            // then
+            mvc.perform(put("/word/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("실패 - 자주쓰는문구가 존재하지 않음")
+        void updateWordFailWordNotFound() throws Exception {
+            // given
+            // when
+            doThrow(WordNotFoundException.class).when(wordService).update(anyLong(), anyLong(), any());
+
+            // then
+            mvc.perform(put("/word/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(WORD_NOT_FOUND.getMessage())))
                     .andExpect(jsonPath("$.data", equalTo(null)));
         }
     }

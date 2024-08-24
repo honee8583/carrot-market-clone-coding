@@ -2,7 +2,7 @@ package com.carrot.carrotmarketclonecoding.word.domain;
 
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -34,10 +34,14 @@ public class Word extends BaseEntity {
 
     private String word;
 
-    public static Word createWord(WordRegisterRequestDto registerRequestDto, Member member) {
+    public static Word createWord(WordRequestDto wordRequestDto, Member member) {
         return Word.builder()
                 .member(member)
-                .word(registerRequestDto.getWord())
+                .word(wordRequestDto.getWord())
                 .build();
+    }
+
+    public void update(WordRequestDto wordRequestDto) {
+        this.word = wordRequestDto.getWord();
     }
 }
