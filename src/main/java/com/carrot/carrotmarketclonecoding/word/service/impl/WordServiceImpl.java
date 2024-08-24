@@ -1,6 +1,7 @@
 package com.carrot.carrotmarketclonecoding.word.service.impl;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.word.domain.Word;
@@ -20,9 +21,12 @@ public class WordServiceImpl implements WordService {
     private final WordRepository wordRepository;
     private final MemberRepository memberRepository;
 
+    private static final int WORD_LIMIT = 30;
+
     @Override
     public void add(Long memberId, WordRegisterRequestDto registerRequestDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        isWordTotalOverLimit(wordRepository.countByMember(member));
         Word word = Word.createWord(registerRequestDto, member);
         wordRepository.save(word);
     }
@@ -33,5 +37,11 @@ public class WordServiceImpl implements WordService {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         List<Word> words = wordRepository.findAllByMember(member);
         return words.stream().map(WordListResponseDto::createWordListResponseDto).toList();
+    }
+
+    private void isWordTotalOverLimit(int total) {
+        if (total >= WORD_LIMIT) {
+            throw new MemberWordLimitException();
+        }
     }
 }
