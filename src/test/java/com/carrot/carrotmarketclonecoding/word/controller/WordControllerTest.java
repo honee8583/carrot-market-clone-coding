@@ -2,12 +2,14 @@ package com.carrot.carrotmarketclonecoding.word.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
+import static com.carrot.carrotmarketclonecoding.word.WordTestDisplayNames.MESSAGE.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -45,11 +47,11 @@ class WordControllerTest {
     private WordServiceImpl wordService;
 
     @Nested
-    @DisplayName("자주쓰는문구 추가 컨트롤러 테스트")
+    @DisplayName(WORD_ADD_CONTROLLER_TEST)
     class AddWord {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void addWordSuccess() throws Exception {
             // given
             // when
@@ -67,7 +69,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 유효성 검사 실패")
+        @DisplayName(FAIL_INPUT_NOT_VALID)
         void addWordFailNotValid() throws Exception {
             // given
             Map<String, String> map = new HashMap<>();
@@ -86,7 +88,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void addWordFailMemberNotFound() throws Exception {
             // given
 
@@ -105,7 +107,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 자주쓰는문구의 개수가 30개를 초과함")
+        @DisplayName(FAIL_MEMBER_WORD_OVER_LIMIT)
         void addWordFailMemberWordOverLimit() throws Exception {
             // given
             // when
@@ -124,11 +126,11 @@ class WordControllerTest {
     }
 
     @Nested
-    @DisplayName("자주쓰는문구 목록 조회 컨트롤러 테스트")
+    @DisplayName(WORD_LIST_CONTROLLER_TEST)
     class WordList {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void getWordsSuccess() throws Exception {
             // given
             List<WordListResponseDto> words = Arrays.asList(
@@ -149,7 +151,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void getWordsFailMemberNotFound() throws Exception {
             // given
             // when
@@ -166,11 +168,11 @@ class WordControllerTest {
     }
 
     @Nested
-    @DisplayName("자주쓰는문구 수정 컨트롤러 테스트")
+    @DisplayName(WORD_UPDATE_CONTROLLER_TEST)
     class UpdateWord {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void updateWordSuccess() throws Exception {
             // given
             // when
@@ -188,7 +190,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void updateWordFailMemberNotFound() throws Exception {
             // given
             // when
@@ -196,8 +198,8 @@ class WordControllerTest {
 
             // then
             mvc.perform(put("/word/{id}", 1L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -206,7 +208,7 @@ class WordControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 자주쓰는문구가 존재하지 않음")
+        @DisplayName(FAIL_WORD_NOT_FOUND)
         void updateWordFailWordNotFound() throws Exception {
             // given
             // when
@@ -214,8 +216,62 @@ class WordControllerTest {
 
             // then
             mvc.perform(put("/word/{id}", 1L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(WORD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName(WORD_REMOVE_CONTROLLER_TEST)
+    class RemoveWord {
+
+        @Test
+        @DisplayName(SUCCESS)
+        void removeWordSuccess() throws Exception {
+            // given
+
+            // when
+            doNothing().when(wordService).remove(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/word/{id}", 1L))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(REMOVE_WORD_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
+        void removeWordFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(wordService).remove(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/word/{id}", 1L))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName(FAIL_WORD_NOT_FOUND)
+        void removeWordFailWordNotFound() throws Exception {
+            // given
+            // when
+            doThrow(WordNotFoundException.class).when(wordService).remove(anyLong(), anyLong());
+
+            // then
+            mvc.perform(delete("/word/{id}", 1L))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
