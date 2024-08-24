@@ -15,6 +15,7 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.MemberAlreadyLikedBoardException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
@@ -107,6 +108,27 @@ class BoardLikeServiceTest {
             assertThatThrownBy(() -> boardLikeService.add(boardId, memberId))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 이미 관심게시글로 등록한 게시글임")
+        void addBoardLikeFailMemberAlreadyLikedBoard() {
+            // given
+            Long boardId = 1L;
+            Long memberId = 1L;
+            Board mockBoard = mock(Board.class);
+            Member mockMember = mock(Member.class);
+            BoardLike mockBoardLike = mock(BoardLike.class);
+
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(boardLikeRepository.findByBoardAndMember(any(), any())).thenReturn(Optional.of(mockBoardLike));
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardLikeService.add(boardId, memberId))
+                    .isInstanceOf(MemberAlreadyLikedBoardException.class)
+                    .hasMessage(MEMBER_ALREADY_LIKED_BOARD.getMessage());
         }
     }
 
