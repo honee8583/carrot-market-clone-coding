@@ -4,11 +4,14 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.service.WordService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,5 +31,15 @@ public class WordController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, ADD_WORD_SUCCESS.getMessage(), null));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> list() {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        List<WordListResponseDto> words = wordService.list(memberId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, GET_MEMBER_WORDS.getMessage(), words));
     }
 }
