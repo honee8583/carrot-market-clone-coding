@@ -1,7 +1,6 @@
 package com.carrot.carrotmarketclonecoding.word.service;
 
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_WORD_OVER_LIMIT;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -11,10 +10,11 @@ import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
+import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.word.domain.Word;
-import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto.WordRegisterRequestDto;
+import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto;
 import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.repository.WordRepository;
 import com.carrot.carrotmarketclonecoding.word.service.impl.WordServiceImpl;
@@ -52,13 +52,13 @@ class WordServiceTest {
             // given
             Long memberId = 1L;
             Member mockMember = mock(Member.class);
-            WordRegisterRequestDto registerRequestDto = new WordRegisterRequestDto("word");
+            WordRequestDto wordRequestDto = new WordRequestDto("word");
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.countByMember(any())).thenReturn(10);
 
             // when
-            wordService.add(memberId, registerRequestDto);
+            wordService.add(memberId, wordRequestDto);
 
             // then
             ArgumentCaptor<Word> argumentCaptor = ArgumentCaptor.forClass(Word.class);
@@ -72,13 +72,13 @@ class WordServiceTest {
         void addWordFailMemberNotFound() {
             // given
             Long memberId = 1L;
-            WordRegisterRequestDto registerRequestDto = new WordRegisterRequestDto("word");
+            WordRequestDto wordRequestDto = new WordRequestDto("word");
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> wordService.add(memberId, registerRequestDto))
+            assertThatThrownBy(() -> wordService.add(memberId, wordRequestDto))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -89,14 +89,14 @@ class WordServiceTest {
             // given
             Long memberId = 1L;
             Member mockMember = mock(Member.class);
-            WordRegisterRequestDto registerRequestDto = new WordRegisterRequestDto("word");
+            WordRequestDto wordRequestDto = new WordRequestDto("word");
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.countByMember(any())).thenReturn(30);
 
             // when
             // then
-            assertThatThrownBy(() -> wordService.add(memberId, registerRequestDto))
+            assertThatThrownBy(() -> wordService.add(memberId, wordRequestDto))
                     .isInstanceOf(MemberWordLimitException.class)
                     .hasMessage(MEMBER_WORD_OVER_LIMIT.getMessage());
         }
@@ -143,6 +143,57 @@ class WordServiceTest {
             assertThatThrownBy(() -> wordService.list(memberId))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("자주쓰는문구 수정 서비스 테스트")
+    class UpdateWord {
+
+        @Test
+        @DisplayName("성공")
+        void updateWordSuccess() {
+            // given
+            Long memberId = 1L;
+            Long wordId = 1L;
+            Member mockMember = mock(Member.class);
+            Word mockWord = Word.builder().word("word1").build();
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(wordRepository.findById(anyLong())).thenReturn(Optional.of(mockWord));
+
+            // when
+            wordService.update(memberId, wordId, new WordRequestDto("word2"));
+
+            // then
+            assertThat(mockWord.getWord()).isEqualTo("word2");
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void updateWordFailMemberNotFound() {
+            // given
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> wordService.update(1L, 1L, new WordRequestDto("word")))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("실패 - 자주쓰는문구가 존재하지 않음")
+        void updateWordFailWordNotFound() {
+            // given
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(wordRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> wordService.update(1L, 1L, new WordRequestDto("word")))
+                    .isInstanceOf(WordNotFoundException.class)
+                    .hasMessage(WORD_NOT_FOUND.getMessage());
         }
     }
 }
