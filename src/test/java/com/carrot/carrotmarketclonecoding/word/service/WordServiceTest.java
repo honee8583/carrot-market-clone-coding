@@ -1,6 +1,7 @@
 package com.carrot.carrotmarketclonecoding.word.service;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
+import static com.carrot.carrotmarketclonecoding.word.WordTestDisplayNames.MESSAGE.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -43,11 +44,11 @@ class WordServiceTest {
     private WordServiceImpl wordService;
 
     @Nested
-    @DisplayName("자주쓰는문구 추가 서비스 테스트")
+    @DisplayName(WORD_ADD_SERVICE_TEST)
     class AddWord {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void addWordSuccess() {
             // given
             Long memberId = 1L;
@@ -68,7 +69,7 @@ class WordServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void addWordFailMemberNotFound() {
             // given
             Long memberId = 1L;
@@ -84,7 +85,7 @@ class WordServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 자주쓰는문구의 개수가 30개를 초과함")
+        @DisplayName(FAIL_MEMBER_WORD_OVER_LIMIT)
         void addWordFailMemberWordOverLimit() {
             // given
             Long memberId = 1L;
@@ -103,11 +104,11 @@ class WordServiceTest {
     }
 
     @Nested
-    @DisplayName("자주쓰는문구 목록 조회 서비스 테스트")
+    @DisplayName(WORD_LIST_SERVICE_TEST)
     class WordList {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void getWordsSuccess() {
             // given
             Long memberId = 1L;
@@ -131,7 +132,7 @@ class WordServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void getWordsFailMemberNotFound() {
             // given
             Long memberId = 1L;
@@ -147,11 +148,11 @@ class WordServiceTest {
     }
 
     @Nested
-    @DisplayName("자주쓰는문구 수정 서비스 테스트")
+    @DisplayName(WORD_UPDATE_SERVICE_TEST)
     class UpdateWord {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void updateWordSuccess() {
             // given
             Long memberId = 1L;
@@ -170,7 +171,7 @@ class WordServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void updateWordFailMemberNotFound() {
             // given
             when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -183,7 +184,7 @@ class WordServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 자주쓰는문구가 존재하지 않음")
+        @DisplayName(FAIL_WORD_NOT_FOUND)
         void updateWordFailWordNotFound() {
             // given
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
@@ -192,6 +193,56 @@ class WordServiceTest {
             // when
             // then
             assertThatThrownBy(() -> wordService.update(1L, 1L, new WordRequestDto("word")))
+                    .isInstanceOf(WordNotFoundException.class)
+                    .hasMessage(WORD_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName(WORD_REMOVE_SERVICE_TEST)
+    class RemoveWord {
+
+        @Test
+        @DisplayName(SUCCESS)
+        void removeWordSuccess() {
+            // given
+            Long memberId = 1L;
+            Long wordId = 1L;
+            Member mockMember = mock(Member.class);
+            Word mockWord = mock(Word.class);
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(wordRepository.findById(anyLong())).thenReturn(Optional.of(mockWord));
+
+            // when
+            wordService.remove(memberId, wordId);
+
+            // then
+            verify(wordRepository).delete(mockWord);
+        }
+
+        @Test
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
+        void removeWordFailMemberNotFound() {
+            // given
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> wordService.remove(1L, 1L))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName(FAIL_WORD_NOT_FOUND)
+        void removeWordFailWordNotFound() {
+            // given
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(wordRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> wordService.remove(1L, 1L))
                     .isInstanceOf(WordNotFoundException.class)
                     .hasMessage(WORD_NOT_FOUND.getMessage());
         }

@@ -10,4 +10,6 @@ public interface WordService {
     List<WordListResponseDto> list(Long memberId);
 
     void update(Long memberId, Long wordId, WordRequestDto wordRequestDto);
+
+    void remove(Long memberId, Long wordId);
 }

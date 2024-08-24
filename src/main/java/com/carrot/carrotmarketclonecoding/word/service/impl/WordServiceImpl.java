@@ -47,6 +47,13 @@ public class WordServiceImpl implements WordService {
         word.update(wordRequestDto);
     }
 
+    @Override
+    public void remove(Long memberId, Long wordId) {
+        memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Word word = wordRepository.findById(wordId).orElseThrow(WordNotFoundException::new);
+        wordRepository.delete(word);
+    }
+
     private void isWordTotalOverLimit(int total) {
         if (total >= WORD_LIMIT) {
             throw new MemberWordLimitException();
