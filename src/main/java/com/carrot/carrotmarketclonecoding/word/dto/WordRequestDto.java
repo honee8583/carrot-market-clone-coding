@@ -5,16 +5,13 @@ import static com.carrot.carrotmarketclonecoding.word.dto.validation.WordRegiste
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
+@Getter
+@Setter
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class WordRequestDto {
-
-    @Getter
-    @Setter
-    @Builder
-    @ToString
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class WordRegisterRequestDto {
-        @NotEmpty(message = WORD_NOT_VALID)
-        private String word;
-    }
+    @NotEmpty(message = WORD_NOT_VALID)
+    private String word;
 }
