@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
+import static com.carrot.carrotmarketclonecoding.board.BoardTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,6 +19,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
@@ -43,6 +48,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(BoardController.class)
 class BoardControllerTest {
@@ -54,11 +60,11 @@ class BoardControllerTest {
     private BoardServiceImpl boardService;
 
     @Nested
-    @DisplayName("게시글 작성 컨트롤러 테스트")
+    @DisplayName(BOARD_REGISTER_CONTROLLER_TEST)
     class BoardRegisterControllerTest {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void boardRegisterSuccess() throws Exception {
             // given
             // when
@@ -82,7 +88,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("성공 - 게시글 임시저장")
+        @DisplayName(SUCCESS_REGISTER_TMP_BOARD)
         void boardRegisterTmpSuccess() throws Exception {
             // given
             // when
@@ -106,7 +112,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 업로드 요청한 파일의 개수가 10개 초과")
+        @DisplayName(FAIL_FILE_COUNT_OVER_10)
         void fileUploadLimitExceeded() throws Exception {
             // given
             MockMultipartFile[] pictures = new MockMultipartFile[11];
@@ -150,7 +156,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 유효성 검사 실패")
+        @DisplayName(FAIL_INPUT_NOT_VALID)
         void boardRegisterValidationFailed() throws Exception {
             // given
             Map<String, String> map = new HashMap<>();
@@ -175,7 +181,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 작성자")
+        @DisplayName(FAIL_WRITER_NOT_FOUND)
         void boardRegisterMemberNotFound() throws Exception {
             // given
             // when
@@ -199,7 +205,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 카테고리")
+        @DisplayName(FAIL_CATEGORY_NOT_FOUND)
         void boardRegisterCategoryNotFound() throws Exception {
             // given
             // when
@@ -224,11 +230,11 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("게시글 조회 컨트롤러 테스트")
+    @DisplayName(BOARD_DETAIL_CONTROLLER_TEST)
     class BoardDetail {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void boardDetailSuccess() throws Exception {
             // given
             Long boardId = 1L;
@@ -249,7 +255,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 게시판 아이디")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void boardDetailBoardNotFound() throws Exception {
             // given
             Long boardId = 1L;
@@ -268,20 +274,30 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("게시글 검색 컨트롤러 테스트")
+    @DisplayName(BOARD_SEARCH_CONTROLLER_TEST)
     class SearchBoard {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void searchBoardsSuccess() throws Exception {
             // given
             PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
+            BoardSearchRequestDto searchRequestDto = BoardSearchRequestDto
+                    .builder()
+                    .categoryId(1L)
+                    .keyword("title")
+                    .minPrice(0)
+                    .maxPrice(20000)
+                    .order(SearchOrder.NEWEST)
+                    .build();
 
             // when
             when(boardService.search(any(), any(), any())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board"))
+            mvc.perform(get("/board")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -290,14 +306,25 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsMemberNotFound() throws Exception {
             // given
+            BoardSearchRequestDto searchRequestDto = BoardSearchRequestDto
+                    .builder()
+                    .categoryId(1L)
+                    .keyword("title")
+                    .minPrice(0)
+                    .maxPrice(20000)
+                    .order(SearchOrder.NEWEST)
+                    .build();
+
             // when
             doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
 
             // then
-            mvc.perform(get("/board"))
+            mvc.perform(get("/board")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -307,37 +334,46 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("게시글상태 검색 컨트롤러 테스트")
+    @DisplayName(BOARD_MY_DETAIL_CONTROLLER_TEST)
     class SearchBoardByStatus {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void searchBoardsByStatusSuccess() throws Exception {
             // given
-            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(10, 0, 10, 30);
+            MyBoardSearchRequestDto searchRequestDto = new MyBoardSearchRequestDto(Status.SELL, true);
 
             // when
-            when(boardService.search(any(), any(), any())).thenReturn(response);
+            when(boardService.searchMyBoards(anyLong(), any(), any())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board/status")
-                    .param("status", "SELL"))
+            mvc.perform(get("/board/my")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
                     .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.contents.size()", equalTo(2)));
+                    .andExpect(jsonPath("$.data.contents.size()", equalTo(10)))
+                    .andExpect(jsonPath("$.data.totalPage", equalTo(3)))
+                    .andExpect(jsonPath("$.data.totalElements", equalTo(30)))
+                    .andExpect(jsonPath("$.data.first", equalTo(true)))
+                    .andExpect(jsonPath("$.data.last", equalTo(false)))
+                    .andExpect(jsonPath("$.data.numberOfElements", equalTo(10)));
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsByStatusFailMemberNotFound() throws Exception {
             // given
             // when
-            doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
+            doThrow(MemberNotFoundException.class).when(boardService).searchMyBoards(anyLong(), any(), any());
 
             // then
-            mvc.perform(get("/board/status"))
+            mvc.perform(get("/board/my")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(new MyBoardSearchRequestDto(Status.SELL, true))))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -347,58 +383,11 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("나의 숨김 게시글 목록 조회 컨트롤러 테스트")
-    class HiddenBoards {
-
-        @Test
-        @DisplayName("성공")
-        void searchMyHiddenBoardsSuccess() throws Exception {
-            // given
-            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(11, 0, 10, 11);
-
-            // when
-            when(boardService.search(any(), any(), any())).thenReturn(response);
-
-            // then
-            mvc.perform(get("/board/hidden")
-                    .param("hide", "true"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.totalPage", equalTo(2)))
-                    .andExpect(jsonPath("$.data.totalElements", equalTo(11)))
-                    .andExpect(jsonPath("$.data.contents.size()", equalTo(11)))
-                    .andExpect(jsonPath("$.data.first", equalTo(true)))
-                    .andExpect(jsonPath("$.data.last", equalTo(false)))
-                    .andExpect(jsonPath("$.data.numberOfElements", equalTo(11)));
-        }
-
-        @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
-        void searchMyHiddenBoardsFailMemberNotFound() throws Exception {
-            // given
-
-            // when
-            doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
-
-            // then
-            mvc.perform(get("/board/hidden")
-                    .param("hide", "true"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
-        }
-    }
-
-    @Nested
-    @DisplayName("게시글 수정 컨트롤러 테스트")
+    @DisplayName(BOARD_UPDATE_CONTROLLER_TEST)
     class UpdateBoard {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void boardUpdateSuccess() throws Exception {
             // given
             // when
@@ -422,7 +411,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 사용자")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void boardUpdateFailMemberNotFound() throws Exception {
             // given
             // when
@@ -446,7 +435,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 사용자")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void boardUpdateFailBoardNotFound() throws Exception {
             // given
             // when
@@ -470,7 +459,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        @DisplayName(FAIL_MEMBER_IS_NOT_WRITER)
         void boardUpdateFailMemberIsNotWriter() throws Exception {
             // given
             // when
@@ -495,11 +484,11 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("게시글 삭제 컨트롤러 테스트")
+    @DisplayName(BOARD_DELETE_CONTROLLER_TEST)
     class DeleteBoard {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void deleteBoardSuccess() throws Exception {
             // given
             Long boardId = 1L;
@@ -517,7 +506,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 게시글이 존재하지 않음")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void deleteBoardFailBoardNotFound() throws Exception {
             // given
             Long boardId = 1L;
@@ -535,7 +524,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void deleteBoardFailMemberNotFound() throws Exception {
             // given
             // when
@@ -551,7 +540,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        @DisplayName(FAIL_MEMBER_IS_NOT_WRITER)
         void deleteBoardFailMemberIsNotWriter() throws Exception {
             // given
             // when
@@ -568,11 +557,11 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("임시저장된 게시글 조회 컨트롤러 테스트")
+    @DisplayName(BOARD_GET_TMP_CONTROLLER_TEST)
     class TmpBoardDetail {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void boardDetailSuccess() throws Exception {
             // given
             BoardDetailResponseDto response = BoardDetailResponseDto.builder()
@@ -592,7 +581,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("성공 - 임시저장된 게시물 없음")
+        @DisplayName(SUCCESS_NO_TMP_BOARDS)
         void boardDetailSuccessNotTmpBoard() throws Exception {
             // given
             // when
@@ -608,7 +597,7 @@ class BoardControllerTest {
         }
 
         @Test
-        @DisplayName("실패")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void boardDetailFailMemberNotFound() throws Exception {
             // given
             // when
@@ -631,8 +620,6 @@ class BoardControllerTest {
             boardSearchResponse.add(new BoardSearchResponseDto());
         }
 
-        return new PageResponseDto<>(
-                new PageImpl<>(boardSearchResponse, PageRequest.of(page, size), total)
-        );
+        return new PageResponseDto<>(new PageImpl<>(boardSearchResponse, PageRequest.of(page, size), total));
     }
 }
