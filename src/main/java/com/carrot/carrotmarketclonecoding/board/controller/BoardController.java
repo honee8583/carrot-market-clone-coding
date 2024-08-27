@@ -5,6 +5,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -71,15 +73,7 @@ public class BoardController {
     }
 
     @GetMapping
-    public ResponseEntity<?> search(BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
-        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(null, searchRequestDto, pageable);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
-    }
-
-    @GetMapping("/status")
-    public ResponseEntity<?> searchBoardsByStatus(BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<?> search(@RequestBody BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
         // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
         PageResponseDto<BoardSearchResponseDto> boards = boardService.search(memberId, searchRequestDto, pageable);
@@ -88,11 +82,11 @@ public class BoardController {
                 .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
     }
 
-    @GetMapping("/hidden")
-    public ResponseEntity<?> searchHiddenBoards(Boolean hide, @PageableDefault(size = 10) Pageable pageable) {
+    @GetMapping("/my")
+    public ResponseEntity<?> searchMyBoards(@RequestBody MyBoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
         // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
-        PageResponseDto<BoardSearchResponseDto> boards = boardService.search(memberId, BoardSearchRequestDto.builder().hide(hide).build(), pageable);
+        PageResponseDto<BoardSearchResponseDto> boards = boardService.searchMyBoards(memberId, searchRequestDto, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, SEARCH_BOARDS_SUCCESS.getMessage(), boards));
