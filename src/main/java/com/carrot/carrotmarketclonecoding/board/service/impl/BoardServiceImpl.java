@@ -14,7 +14,7 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepositor
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
-import com.carrot.carrotmarketclonecoding.board.service.SearchService;
+import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
 import com.carrot.carrotmarketclonecoding.board.service.VisitService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
@@ -43,7 +43,7 @@ public class BoardServiceImpl implements BoardService {
     private final BoardLikeRepository boardLikeRepository;
     private final VisitService visitService;
     private final BoardPictureService boardPictureService;
-    private final SearchService searchService;
+    private final SearchKeywordService searchKeywordService;
 
     @Override
     public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp) {
@@ -89,8 +89,8 @@ public class BoardServiceImpl implements BoardService {
     @Transactional(readOnly = true)
     public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        searchService.addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
-        searchService.addSearchRank(searchRequestDto.getKeyword());
+        searchKeywordService.addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
+        searchKeywordService.addSearchRank(searchRequestDto.getKeyword());
         return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
     }
 
