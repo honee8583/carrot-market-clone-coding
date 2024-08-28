@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.board.service;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
@@ -16,6 +17,8 @@ public interface BoardService {
     BoardDetailResponseDto tmpBoardDetail(Long memberId);
 
     PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable);
+
+    PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long memberId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable);
 
     void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long memberId);
 

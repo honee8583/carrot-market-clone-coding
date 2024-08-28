@@ -7,6 +7,7 @@ import static com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder.
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepositoryCustom;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
@@ -44,8 +45,6 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         titleContains(searchRequestDto.getKeyword()),
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),
-                        statusEq(searchRequestDto.getStatus()),
-                        hideEq(searchRequestDto.getHide()),
                         board.tmp.eq(false)
                 )
                 .orderBy(getOrder(searchRequestDto.getOrder()))
@@ -62,8 +61,6 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         titleContains(searchRequestDto.getKeyword()),
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),
-                        statusEq(searchRequestDto.getStatus()),
-                        hideEq(searchRequestDto.getHide()),
                         board.tmp.eq(false));
 
         return PageableExecutionUtils.getPage(boards.stream().map(t ->
@@ -97,6 +94,39 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                                 t.get(board),
                                 t.get(boardLike.count()).intValue())
                 ).collect(Collectors.toList()), pageable, total::fetchOne);
+    }
+
+    @Override
+    public Page<BoardSearchResponseDto> findAllByStatusOrHide(Member member, MyBoardSearchRequestDto searchRequestDto, Pageable pageable) {
+        List<Tuple> boards = queryFactory
+                .select(board, boardLike.count())
+                .from(board)
+                .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
+                .where(
+                        memberEq(member),
+                        statusEq(searchRequestDto.getStatus()),
+                        hideEq(searchRequestDto.getHide()),
+                        board.tmp.eq(false)
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .groupBy(board.id)
+                .fetch();
+
+        JPAQuery<Long> total = queryFactory
+                .select(board.count())
+                .from(board)
+                .where(
+                        memberEq(member),
+                        statusEq(searchRequestDto.getStatus()),
+                        hideEq(searchRequestDto.getHide()),
+                        board.tmp.eq(false));
+
+        return PageableExecutionUtils.getPage(boards.stream().map(t ->
+                BoardSearchResponseDto.getSearchResult(
+                        t.get(board),
+                        t.get(boardLike.count()).intValue())
+        ).collect(Collectors.toList()), pageable, total::fetchOne);
     }
 
     private BooleanExpression hideEq(Boolean hide) {

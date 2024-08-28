@@ -6,6 +6,7 @@ import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
@@ -13,6 +14,7 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepositor
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
+import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
 import com.carrot.carrotmarketclonecoding.board.service.VisitService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
@@ -24,10 +26,12 @@ import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class BoardServiceImpl implements BoardService {
     private final BoardLikeRepository boardLikeRepository;
     private final VisitService visitService;
     private final BoardPictureService boardPictureService;
+    private final SearchKeywordService searchKeywordService;
 
     @Override
     public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp) {
@@ -83,11 +88,17 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        Member member = null;
-        if (memberId != null) {
-            member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        }
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        searchKeywordService.addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
+        searchKeywordService.addSearchRank(searchRequestDto.getKeyword());
         return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long memberId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable) {
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        return new PageResponseDto<>(boardRepository.findAllByStatusOrHide(member, searchRequestDto, pageable));
     }
 
     @Override

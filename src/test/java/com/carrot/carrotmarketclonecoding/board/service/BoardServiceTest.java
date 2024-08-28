@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.service;
 
+import static com.carrot.carrotmarketclonecoding.board.BoardTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,10 +17,12 @@ import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
@@ -82,12 +85,15 @@ class BoardServiceTest {
     @Mock
     private BoardPictureService boardPictureService;
 
+    @Mock
+    private SearchKeywordService searchKeywordService;
+
     @Nested
-    @DisplayName("게시글 작성 서비스 테스트")
+    @DisplayName(BOARD_REGISTER_SERVICE_TEST)
     class RegisterBoard {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void registerBoardSuccess() {
             // given
             Long memberId = 1L;
@@ -128,7 +134,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 업로드 요청한 파일의 개수가 10개 초과")
+        @DisplayName(FAIL_FILE_COUNT_OVER_10)
         void fileUploadLimitExceeded() {
             // given
             MultipartFile[] files = createFiles(20);
@@ -156,7 +162,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 작성자")
+        @DisplayName(FAIL_WRITER_NOT_FOUND)
         void registerBoardMemberNotFound() {
             // given
             Long memberId = 1L;
@@ -174,7 +180,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 카테고리")
+        @DisplayName(FAIL_CATEGORY_NOT_FOUND)
         void registerBoardCategoryNotFound() {
             // given
             Long memberId = 1L;
@@ -212,11 +218,11 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("게시글 조회 서비스 테스트")
+    @DisplayName(BOARD_DETAIL_SERVICE_TEST)
     class BoardDetail {
 
         @Test
-        @DisplayName("성공 - 조회수 증가 포함")
+        @DisplayName(SUCCESS_INCLUDE_INCREASE_VISIT)
         void boardDetailSuccess() {
             // given
             Long boardId = 1L;
@@ -251,7 +257,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("성공 - 24시간내에 재조회할경우 조회수 증가 x")
+        @DisplayName(SUCCESS_NOT_INCREASE_VISIT_REVISIT_IN_24HOURS)
         void boardDetailSuccessVisitCountNotIncreased() {
             // given
             Long boardId = 1L;
@@ -274,7 +280,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 게시판")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void boardDetailBoardNotFound() {
             // given
             Long boardId = 1L;
@@ -290,54 +296,102 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("게시글 검색 서비스 테스트")
+    @DisplayName(BOARD_SEARCH_SERVICE_TEST)
     class SearchBoards {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void searchBoardsSuccess() {
             // given
             Long memberId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
-            List<BoardSearchResponseDto> searchResponseDtos = Arrays.asList(
+            List<BoardSearchResponseDto> boardSearchResponses = Arrays.asList(
                     new BoardSearchResponseDto(),
                     new BoardSearchResponseDto()
             );
             Pageable pageable = PageRequest.of(0, 10);
-            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(searchResponseDtos, pageable, 2);
+            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(boardSearchResponses, pageable, 2);
+            BoardSearchRequestDto searchRequestDto = BoardSearchRequestDto.builder()
+                    .categoryId(1L)
+                    .keyword("title")
+                    .minPrice(0)
+                    .maxPrice(20000)
+                    .order(SearchOrder.NEWEST)
+                    .build();
 
             when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findAllByMemberAndSearchRequestDto(any(), any(), any())).thenReturn(searchResult);
 
             // when
-            PageResponseDto<BoardSearchResponseDto> response = boardService.search(memberId, new BoardSearchRequestDto(), pageable);
+            PageResponseDto<BoardSearchResponseDto> response = boardService.search(memberId, searchRequestDto, pageable);
 
             // then
+            verify(searchKeywordService).addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
+            verify(searchKeywordService).addSearchRank(searchRequestDto.getKeyword());
             assertThat(response.getContents().size()).isEqualTo(2);
         }
 
         @Test
-        @DisplayName("실패 - 존재하지 않는 사용자")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsFailMemberNotFound() {
             // given
-            Long memberId = 1L;
-
             when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.search(memberId, mock(BoardSearchRequestDto.class), mock(Pageable.class)))
+            assertThatThrownBy(() -> boardService.search(1L, mock(BoardSearchRequestDto.class), mock(Pageable.class)))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
     }
 
     @Nested
-    @DisplayName("게시글 수정 서비스 테스트")
+    @DisplayName(BOARD_MY_DETAIL_SERVICE_TEST)
+    class MyBoards {
+
+        @Test
+        @DisplayName(SUCCESS)
+        void searchMyBoardsSuccess() {
+            // given
+            Long memberId = 1L;
+            List<BoardSearchResponseDto> boardSearchResponses = Arrays.asList(
+                    new BoardSearchResponseDto(),
+                    new BoardSearchResponseDto()
+            );
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(boardSearchResponses, pageable, 2);
+
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(boardRepository.findAllByStatusOrHide(any(), any(), any())).thenReturn(searchResult);
+
+            // when
+            PageResponseDto<BoardSearchResponseDto> response = boardService.searchMyBoards(memberId, new MyBoardSearchRequestDto(), pageable);
+
+            // then
+            assertThat(response.getContents().size()).isEqualTo(2);
+            assertThat(response.getNumberOfElements()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
+        void searchBoardsFailMemberNotFound() {
+            // given
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> boardService.searchMyBoards(1L, mock(MyBoardSearchRequestDto.class), mock(Pageable.class)))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName(BOARD_UPDATE_SERVICE_TEST)
     class UpdateBoard {
 
         @Test
-        @DisplayName("성공 - 임시저장한 게시글을 수정한경우 이전 임시저장게시글 모두 삭제")
+        @DisplayName(SUCCESS_DELETE_OLD_TMP_BOARDS)
         void updateBoardWithDeleteTmpBoardsSuccess() {
             // given
             Long boardId = 1L;
@@ -382,7 +436,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("성공 - 임시저장한 게시글이 아닐경우 이전의 임시저장한 게시글을 삭제x")
+        @DisplayName(SUCCESS_NOT_DELETE_OLD_TMP_BOARDS_IF_BOARD_NOT_TMP)
         void updateBoardSuccess() {
             // given
             Long boardId = 1L;
@@ -416,28 +470,26 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void updateBoardFailMemberNotExists() {
             // given
-            Long boardId = 1L;
-            Long memberId = 1L;
             when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(), boardId, memberId))
+            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(), 1L, 1L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
 
         @Test
-        @DisplayName("실패 - 게시글이 존재하지 않음")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void updateBoardFailBoardNotExists() {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
@@ -448,7 +500,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        @DisplayName(FAIL_MEMBER_IS_NOT_WRITER)
         void updateBoardFailMemberIsNotWriter() {
             // given
             Long boardId = 1L;
@@ -469,7 +521,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 카테고리가 존재하지 않음")
+        @DisplayName(FAIL_CATEGORY_NOT_FOUND)
         void updateBoardFailCategoryNotFound() {
             // given
             Long boardId = 1L;
@@ -489,7 +541,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 새로 첨부하는 사진의 개수가 10개를 넘음")
+        @DisplayName(FAIL_NEW_PICTURES_COUNT_OVER_10)
         void updateBoardFailFileUploadLimit() {
             // given
             Long boardId = 1L;
@@ -532,11 +584,11 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("게시글 삭제 서비스 테스트")
+    @DisplayName(BOARD_DELETE_SERVICE_TEST)
     class DeleteBoard {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void deleteBoardSuccess() {
             // given
             Long boardId = 1L;
@@ -555,7 +607,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 게시글 존재하지 않음")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void deleteBoardFailBoardNotFound() {
             // given
             Long boardId = 1L;
@@ -571,7 +623,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void deleteBoardFailMemberNotFound() {
             // given
             Long boardId = 1L;
@@ -589,7 +641,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 작성자와 사용자가 일치하지 않음")
+        @DisplayName(FAIL_MEMBER_IS_NOT_WRITER)
         void deleteBoardFailMemberIsNotWriter() {
             // given
             Long boardId = 1L;
@@ -609,11 +661,11 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("임시 게시글 조회 서비스 테스트")
+    @DisplayName(BOARD_GET_TMP_SERVICE_TEST)
     class TmpBoardDetail {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void tmpBoardDetailSuccess() {
             // given
             Long memberId = 1L;
@@ -635,7 +687,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("성공 - 임시저장 게시글이 존재하지 않음")
+        @DisplayName(SUCCESS_NO_TMP_BOARDS)
         void tmpBoardDetailSuccessNoTmpBoards() {
             // given
             Long memberId = 1L;
@@ -652,7 +704,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void tmpBoardDetailFailMemberNotFound() {
             // given
             Long memberId = 1L;

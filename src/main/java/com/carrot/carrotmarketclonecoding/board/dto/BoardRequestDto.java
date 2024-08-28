@@ -91,6 +91,15 @@ public class BoardRequestDto {
         private Integer minPrice;
         private Integer maxPrice;
         private SearchOrder order;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyBoardSearchRequestDto {
         private Status status;
         private Boolean hide;
     }
