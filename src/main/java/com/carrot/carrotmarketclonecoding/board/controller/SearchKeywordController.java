@@ -4,6 +4,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 
 import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,5 +25,15 @@ public class SearchKeywordController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, GET_TOP_RANK_SEARCH_KEYWORDS_SUCCESS.getMessage(), keywords));
+    }
+
+    @GetMapping("/search/recent")
+    public ResponseEntity<?> getRecentSearchKeywords() {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        List<String> keywords = searchKeywordService.getRecentSearches(memberId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, GET_RECENT_SEARCH_KEYWORDS_SUCCESS.getMessage(), keywords));
     }
 }
