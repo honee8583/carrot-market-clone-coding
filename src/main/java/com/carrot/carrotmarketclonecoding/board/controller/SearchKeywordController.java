@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -21,7 +23,7 @@ public class SearchKeywordController {
 
     @GetMapping("/search/rank")
     public ResponseEntity<?> searchKeywordTopRank() {
-        Set<String> keywords = searchKeywordService.getTopSearchRank();
+        Set<String> keywords = searchKeywordService.getSearchKeywordRank();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, GET_TOP_RANK_SEARCH_KEYWORDS_SUCCESS.getMessage(), keywords));
@@ -31,9 +33,19 @@ public class SearchKeywordController {
     public ResponseEntity<?> getRecentSearchKeywords() {
         // TODO memberId -> JWT.getMemberId()
         Long memberId = 1L;
-        List<String> keywords = searchKeywordService.getRecentSearches(memberId);
+        List<String> keywords = searchKeywordService.getRecentSearchKeywords(memberId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, GET_RECENT_SEARCH_KEYWORDS_SUCCESS.getMessage(), keywords));
+    }
+
+    @DeleteMapping("/search/recent")
+    public ResponseEntity<?> removeRecentKeyword(@RequestParam("keyword") String keyword) {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        searchKeywordService.removeRecentSearchKeyword(memberId, keyword);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, REMOVE_RECENT_SEARCH_KEYWORD_SUCCESS.getMessage(), null));
     }
 }
