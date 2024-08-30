@@ -327,7 +327,7 @@ class BoardServiceTest {
 
             // then
             verify(searchKeywordService).addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
-            verify(searchKeywordService).addSearchRank(searchRequestDto.getKeyword());
+            verify(searchKeywordService).addSearchKeywordRank(searchRequestDto.getKeyword());
             assertThat(response.getContents().size()).isEqualTo(2);
         }
 
