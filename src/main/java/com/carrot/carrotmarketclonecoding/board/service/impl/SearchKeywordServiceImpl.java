@@ -23,12 +23,12 @@ public class SearchKeywordServiceImpl implements SearchKeywordService {
     private static final int MAX_RECENT_SEARCHES = 20;
 
     @Override
-    public void addSearchRank(String keyword) {
+    public void addSearchKeywordRank(String keyword) {
         redisTemplate.opsForZSet().incrementScore(SEARCH_RANK_KEY, keyword, 1);
     }
 
     @Override
-    public Set<String> getSearchKeywordRank() {
+    public Set<String> getTopSearchKeywords() {
         return redisTemplate.opsForZSet().reverseRange(SEARCH_RANK_KEY, 0, 9);
     }
 
@@ -58,6 +58,12 @@ public class SearchKeywordServiceImpl implements SearchKeywordService {
         isMemberExist(memberId);
         String key = SEARCH_RECENT_KEY + memberId;
         redisTemplate.opsForList().remove(key, 0, keyword);
+    }
+
+    @Override
+    public void removeAllRecentSearchKeywords(Long memberId) {
+        isMemberExist(memberId);
+        redisTemplate.delete(SEARCH_RECENT_KEY + memberId);
     }
 
     private void isMemberExist(Long memberId) {

@@ -23,7 +23,7 @@ public class SearchKeywordController {
 
     @GetMapping("/search/rank")
     public ResponseEntity<?> searchKeywordTopRank() {
-        Set<String> keywords = searchKeywordService.getSearchKeywordRank();
+        Set<String> keywords = searchKeywordService.getTopSearchKeywords();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, GET_TOP_RANK_SEARCH_KEYWORDS_SUCCESS.getMessage(), keywords));
@@ -47,5 +47,15 @@ public class SearchKeywordController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, REMOVE_RECENT_SEARCH_KEYWORD_SUCCESS.getMessage(), null));
+    }
+
+    @DeleteMapping("/search/recent/all")
+    public ResponseEntity<?> removeAllRecentKeywords() {
+        // TODO memberId -> JWT.getMemberId()
+        Long memberId = 1L;
+        searchKeywordService.removeAllRecentSearchKeywords(memberId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, REMOVE_ALL_RECENT_SEARCH_KEYWORD_SUCCESS.getMessage(), null));
     }
 }

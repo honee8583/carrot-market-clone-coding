@@ -147,4 +147,24 @@ class SearchKeywordServiceTest {
         assertThat(listOperations.leftPop(key)).isEqualTo("keyword2");
         assertThat(listOperations.leftPop(key)).isEqualTo("keyword3");
     }
+
+    @Test
+    @DisplayName("최근검색어 - 전체 최근 검색어 삭제")
+    void removeAllRecentSearchKeywords() {
+        // given
+        Long memberId = 1L;
+        String key = SEARCH_RECENT_KEY + memberId;
+
+        ListOperations<String, String> listOps = redisTemplate.opsForList();
+        listOps.rightPush(key, "keyword1");
+        listOps.rightPush(key, "keyword2");
+        listOps.rightPush(key, "keyword3");
+
+        // when
+        redisTemplate.delete(key);
+
+        // then
+        Long size = listOps.size(key);
+        assertThat(size).isEqualTo(0);
+    }
 }

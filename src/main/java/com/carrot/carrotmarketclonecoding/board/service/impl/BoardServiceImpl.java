@@ -90,7 +90,7 @@ public class BoardServiceImpl implements BoardService {
     public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         searchKeywordService.addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
-        searchKeywordService.addSearchRank(searchRequestDto.getKeyword());
+        searchKeywordService.addSearchKeywordRank(searchRequestDto.getKeyword());
         return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
     }
 
