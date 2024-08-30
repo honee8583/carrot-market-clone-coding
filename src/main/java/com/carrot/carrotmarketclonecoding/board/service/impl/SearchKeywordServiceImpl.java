@@ -23,12 +23,12 @@ public class SearchKeywordServiceImpl implements SearchKeywordService {
     private static final int MAX_RECENT_SEARCHES = 20;
 
     @Override
-    public void addSearchRank(String keyword) {
+    public void addSearchKeywordRank(String keyword) {
         redisTemplate.opsForZSet().incrementScore(SEARCH_RANK_KEY, keyword, 1);
     }
 
     @Override
-    public Set<String> getSearchKeywordRank() {
+    public Set<String> getTopSearchKeywords() {
         return redisTemplate.opsForZSet().reverseRange(SEARCH_RANK_KEY, 0, 9);
     }
 

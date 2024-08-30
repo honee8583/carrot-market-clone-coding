@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Set;
 
 public interface SearchKeywordService {
-    void addSearchRank(String keyword);
+    void addSearchKeywordRank(String keyword);
 
-    Set<String> getSearchKeywordRank();
+    Set<String> getTopSearchKeywords();
 
     void addRecentSearchKeywords(Long memberId, String keyword);
 
