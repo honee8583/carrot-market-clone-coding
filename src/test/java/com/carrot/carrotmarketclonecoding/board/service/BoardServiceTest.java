@@ -326,7 +326,7 @@ class BoardServiceTest {
             PageResponseDto<BoardSearchResponseDto> response = boardService.search(memberId, searchRequestDto, pageable);
 
             // then
-            verify(searchKeywordService).addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
+            verify(searchKeywordService).addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
             verify(searchKeywordService).addSearchRank(searchRequestDto.getKeyword());
             assertThat(response.getContents().size()).isEqualTo(2);
         }
