@@ -20,7 +20,8 @@ public enum SuccessMessage {
     UPDATE_WORD_SUCCESS("자주쓰는문구 수정에 성공하였습니다!"),
     REMOVE_WORD_SUCCESS("자주쓰는문구 삭제에 성공하였습니다!"),
     GET_TOP_RANK_SEARCH_KEYWORDS_SUCCESS("인기검색어 목록 조회에 성공하였습니다!"),
-    GET_RECENT_SEARCH_KEYWORDS_SUCCESS("사용자의 최근 검색어 목록 조회에 성공하였습니다!");
+    GET_RECENT_SEARCH_KEYWORDS_SUCCESS("사용자의 최근 검색어 목록 조회에 성공하였습니다!"),
+    REMOVE_RECENT_SEARCH_KEYWORD_SUCCESS("사용자의 최근 검색어 삭제에 성공하였습니다!");
 
     private final String message;
 }
