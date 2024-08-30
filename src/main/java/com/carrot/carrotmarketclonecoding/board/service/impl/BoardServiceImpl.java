@@ -89,7 +89,7 @@ public class BoardServiceImpl implements BoardService {
     @Transactional(readOnly = true)
     public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        searchKeywordService.addMemberSearchKeywords(memberId, searchRequestDto.getKeyword());
+        searchKeywordService.addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
         searchKeywordService.addSearchRank(searchRequestDto.getKeyword());
         return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
     }
