@@ -60,6 +60,12 @@ public class SearchKeywordServiceImpl implements SearchKeywordService {
         redisTemplate.opsForList().remove(key, 0, keyword);
     }
 
+    @Override
+    public void removeAllRecentSearchKeywords(Long memberId) {
+        isMemberExist(memberId);
+        redisTemplate.delete(SEARCH_RECENT_KEY + memberId);
+    }
+
     private void isMemberExist(Long memberId) {
         memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
     }

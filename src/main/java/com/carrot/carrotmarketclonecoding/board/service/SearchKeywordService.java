@@ -13,4 +13,6 @@ public interface SearchKeywordService {
     List<String> getRecentSearchKeywords(Long memberId);
 
     void removeRecentSearchKeyword(Long memberId, String keyword);
+
+    void removeAllRecentSearchKeywords(Long memberId);
 }
