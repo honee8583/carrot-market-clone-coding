@@ -38,7 +38,7 @@ class SearchKeywordServiceTest {
 
     @Test
     @DisplayName("인기검색어 - 검색어 검색 횟수 증가")
-    void testAddSearchRank() {
+    void addSearchKeywordsRank() {
         // given
         String keyword = "keyword";
 
@@ -52,7 +52,7 @@ class SearchKeywordServiceTest {
 
     @Test
     @DisplayName("인기검색어 - 인기검색어목록 조회")
-    void testGetTopSearchRank() {
+    void getTopSearchKeywordsRank() {
         // given
         // when
         redisTemplate.opsForZSet().incrementScore(SEARCH_RANK_KEY, "keyboard", 1);
@@ -68,7 +68,7 @@ class SearchKeywordServiceTest {
 
     @Test
     @DisplayName("최근검색어 - 사용자의 최근검색어 추가")
-    void testAddMemberSearchKeywords() {
+    void addRecentSearchKeywords() {
         // given
         String key = SEARCH_RECENT_KEY + 1L;
         String keyword = "keyword";
@@ -85,7 +85,7 @@ class SearchKeywordServiceTest {
 
     @Test
     @DisplayName("최근검색어 - 사용자의 최근검색어 개수가 20개가 넘어갈경우 오래된 검색어 제거")
-    void testAddMemberSearchKeywordsRemoveOldKeyword() {
+    void addRecentSearchKeywordsRemoveOldKeyword() {
         // given
         Long memberId = 1L;
         String key = SEARCH_RECENT_KEY + memberId;
@@ -111,7 +111,7 @@ class SearchKeywordServiceTest {
 
     @Test
     @DisplayName("최근검색어 - 사용자의 최근검색어 목록 조회")
-    void testGetRecentSearches() {
+    void getRecentSearchKeywords() {
         // given
         Long memberId = 1L;
         String key = SEARCH_RECENT_KEY + memberId;
@@ -125,5 +125,26 @@ class SearchKeywordServiceTest {
         // then
         List<String> result = listOperations.range(key, 0, -1);
         assertThat(result.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("최근검색어 - 사용자의 특정 최근검색어 삭제")
+    void removeRecentSearchKeyword() {
+        // given
+        Long memberId = 1L;
+        String key = SEARCH_RECENT_KEY + memberId;
+
+        ListOperations<String, String> listOperations = redisTemplate.opsForList();
+        listOperations.rightPush(key, "keyword1");
+        listOperations.rightPush(key, "keyword2");
+        listOperations.rightPush(key, "keyword3");
+
+        // when
+        listOperations.remove(key, 0, "keyword1");
+
+        // then
+        assertThat(listOperations.size(key)).isEqualTo(2);
+        assertThat(listOperations.leftPop(key)).isEqualTo("keyword2");
+        assertThat(listOperations.leftPop(key)).isEqualTo("keyword3");
     }
 }
