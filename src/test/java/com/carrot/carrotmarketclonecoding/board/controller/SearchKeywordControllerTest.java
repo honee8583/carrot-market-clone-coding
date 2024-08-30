@@ -52,7 +52,7 @@ class SearchKeywordControllerTest {
             keywords.add("keyword2");
 
             // when
-            when(searchKeywordService.getSearchKeywordRank()).thenReturn(keywords);
+            when(searchKeywordService.getTopSearchKeywords()).thenReturn(keywords);
 
             // then
             mvc.perform(get("/search/rank"))
@@ -142,6 +142,43 @@ class SearchKeywordControllerTest {
             mvc.perform(delete("/search/recent")
                     .contentType(MediaType.APPLICATION_JSON)
                     .param("keyword", "keyword"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+    }
+
+    @Nested
+    @DisplayName(REMOVE_ALL_RECENT_SEARCH_KEYWORDS_CONTROLLER_TEST)
+    class RemoveAllRecentSearchKeywords {
+
+        @Test
+        @DisplayName(SUCCESS)
+        void removeAllRecentSearchKeywordsSuccess() throws Exception {
+            // given
+            // when
+            doNothing().when(searchKeywordService).removeAllRecentSearchKeywords(anyLong());
+
+            // then
+            mvc.perform(delete("/search/recent/all"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(REMOVE_ALL_RECENT_SEARCH_KEYWORD_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
+        void removeAllRecentSearchKeywordsFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(searchKeywordService).removeAllRecentSearchKeywords(anyLong());
+
+            // then
+            mvc.perform(delete("/search/recent/all"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
