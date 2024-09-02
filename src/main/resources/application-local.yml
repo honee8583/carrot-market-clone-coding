@@ -5,9 +5,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ENC(uTzRBPefL0bFrpGZxOWWNGL9Nw5Uyn+18hnaixjjKyMy6WUV9jnkiKluYhwC6ns0BXwsLRdzY3qupYb033VJqQ==)
+    url: ENC(E7PZalPrLJMD3El73w0aNpnxAM+ilDUOxcl8CzZ8KiW4BP6EbKzxH3kRAdDNovsouqS8DO5sJ20=)
     username: root
-    password: ENC(IodgSOc+Fl9zsU7t261DauMaJCjRPSNq)
+    password: ENC(WVWFm5ztFfCLQzDKrZEZ4Q==)
 
   data:
     redis:
