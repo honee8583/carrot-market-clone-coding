@@ -3,15 +3,8 @@ package com.carrot.carrotmarketclonecoding.board.service;
 import static com.carrot.carrotmarketclonecoding.board.BoardTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
@@ -233,9 +226,7 @@ class BoardServiceTest {
                     BoardPicture.builder().id(2L).build());
             Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
 
-
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
             when(visitService.increaseVisit(anyString(), anyString())).thenReturn(true);
 
@@ -268,7 +259,6 @@ class BoardServiceTest {
             Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(boardPictureRepository.findByBoard(any())).thenReturn(mockPictures);
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
             when(visitService.increaseVisit(anyString(), anyString())).thenReturn(false);
 
@@ -603,6 +593,8 @@ class BoardServiceTest {
             boardService.delete(boardId, memberId);
 
             // then
+            verify(boardLikeRepository).deleteAllByBoardId(boardId);
+            verify(boardPictureRepository).deleteAllByBoardId(boardId);
             verify(boardRepository).delete(mockBoard);
         }
 
