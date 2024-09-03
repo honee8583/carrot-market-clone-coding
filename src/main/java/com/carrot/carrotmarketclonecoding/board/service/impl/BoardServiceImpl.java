@@ -1,7 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.service.impl;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
-import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
@@ -23,7 +22,6 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +58,6 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardDetailResponseDto detail(Long boardId, String sessionId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
-        List<BoardPicture> pictures = boardPictureRepository.findByBoard(board);
         int like = boardLikeRepository.countByBoard(board);
 
         if (visitService.increaseVisit(board.getId().toString(), sessionId)) {
@@ -88,9 +85,12 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        searchKeywordService.addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
-        searchKeywordService.addSearchKeywordRank(searchRequestDto.getKeyword());
+        Member member = null;
+        if (isLogin(memberId)) {
+            member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+            searchKeywordService.addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
+            searchKeywordService.addSearchKeywordRank(searchRequestDto.getKeyword());
+        }
         return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
     }
 
@@ -122,6 +122,8 @@ public class BoardServiceImpl implements BoardService {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         isWriterOfBoard(board, member);
+        boardLikeRepository.deleteAllByBoardId(boardId);
+        boardPictureRepository.deleteAllByBoardId(boardId);
         boardRepository.delete(board);
     }
 
@@ -137,5 +139,9 @@ public class BoardServiceImpl implements BoardService {
         if (board.getMember() != member) {
             throw new UnauthorizedAccessException();
         }
+    }
+
+    private boolean isLogin(Long memberId) {
+        return memberId != null && memberId > 0L;
     }
 }
