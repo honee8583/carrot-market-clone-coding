@@ -4,6 +4,7 @@ import static com.carrot.carrotmarketclonecoding.board.domain.QBoard.board;
 import static com.carrot.carrotmarketclonecoding.board.domain.QBoardLike.boardLike;
 import static com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder.*;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
@@ -11,7 +12,6 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearc
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepositoryCustom;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLTemplates;
@@ -36,10 +36,8 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
 
     @Override
     public Page<BoardSearchResponseDto> findAllByMemberAndSearchRequestDto(Member member, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        List<Tuple> boards = queryFactory
-                .select(board, boardLike.count())
-                .from(board)
-                .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
+        List<Board> boards = queryFactory
+                .selectFrom(board)
                 .where(
                         memberEq(member),
                         titleContains(searchRequestDto.getKeyword()),
@@ -63,18 +61,15 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         categoryEq(searchRequestDto.getCategoryId()),
                         board.tmp.eq(false));
 
-        return PageableExecutionUtils.getPage(boards.stream().map(t ->
-                BoardSearchResponseDto.getSearchResult(
-                        t.get(board),
-                        t.get(boardLike.count()).intValue())
-                ).collect(Collectors.toList()), pageable, total::fetchOne);
+        return PageableExecutionUtils.getPage(boards.stream()
+                .map(BoardSearchResponseDto::getSearchResult)
+                .collect(Collectors.toList()), pageable, total::fetchOne);
     }
 
     @Override
     public Page<BoardSearchResponseDto> searchMemberLikedBoards(Member member, Pageable pageable) {
-        List<Tuple> boards = queryFactory
-                .select(board, boardLike.count())
-                .from(board)
+        List<Board> boards = queryFactory
+                .selectFrom(board)
                 .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
                 .where(boardLike.member.eq(member))
                 .offset(pageable.getOffset())
@@ -89,19 +84,15 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .where(boardLike.member.eq(member))
                 .groupBy(board.id);
 
-        return PageableExecutionUtils.getPage(boards.stream().map(t ->
-                        BoardSearchResponseDto.getSearchResult(
-                                t.get(board),
-                                t.get(boardLike.count()).intValue())
-                ).collect(Collectors.toList()), pageable, total::fetchOne);
+        return PageableExecutionUtils.getPage(boards.stream()
+                .map(BoardSearchResponseDto::getSearchResult)
+                .collect(Collectors.toList()), pageable, total::fetchOne);
     }
 
     @Override
     public Page<BoardSearchResponseDto> findAllByStatusOrHide(Member member, MyBoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        List<Tuple> boards = queryFactory
-                .select(board, boardLike.count())
-                .from(board)
-                .leftJoin(boardLike).on(board.id.eq(boardLike.board.id))
+        List<Board> boards = queryFactory
+                .selectFrom(board)
                 .where(
                         memberEq(member),
                         statusEq(searchRequestDto.getStatus()),
@@ -122,11 +113,9 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                         hideEq(searchRequestDto.getHide()),
                         board.tmp.eq(false));
 
-        return PageableExecutionUtils.getPage(boards.stream().map(t ->
-                BoardSearchResponseDto.getSearchResult(
-                        t.get(board),
-                        t.get(boardLike.count()).intValue())
-        ).collect(Collectors.toList()), pageable, total::fetchOne);
+        return PageableExecutionUtils.getPage(boards.stream()
+                .map(BoardSearchResponseDto::getSearchResult)
+                .collect(Collectors.toList()), pageable, total::fetchOne);
     }
 
     private BooleanExpression hideEq(Boolean hide) {
