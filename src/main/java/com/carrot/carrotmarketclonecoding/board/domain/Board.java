@@ -6,7 +6,6 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegiste
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -66,9 +65,15 @@ public class Board extends BaseEntity {
 
     private Boolean tmp;
 
+    @Builder.Default
     @BatchSize(size = 1000)
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board")
     private List<BoardPicture> boardPictures = new ArrayList<>();
+
+    @Builder.Default
+    @BatchSize(size = 1000)
+    @OneToMany(mappedBy = "board")
+    private List<BoardLike> boardLikes = new ArrayList<>();
 
     public void increaseVisit() {
         this.visit += 1;
