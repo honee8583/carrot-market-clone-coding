@@ -36,6 +36,8 @@ public class BoardResponseDto {
         private Boolean suggest;
         private LocalDateTime createDate;
         private String description;
+
+        @Builder.Default
         private List<PictureResponseDto> pictures = new ArrayList<>();
         private int chat;
         private int like;
@@ -97,7 +99,7 @@ public class BoardResponseDto {
         private int price;
         private int like;
 
-        public static BoardSearchResponseDto getSearchResult(Board board, int like) {
+        public static BoardSearchResponseDto getSearchResult(Board board) {
             return BoardSearchResponseDto.builder()
                     .id(board.getId())
                     .pictureUrl(board.getBoardPictures() != null && board.getBoardPictures().size() > 0 ? board.getBoardPictures().get(0).getPictureUrl() : null)
@@ -105,7 +107,7 @@ public class BoardResponseDto {
                     .place(board.getPlace())
                     .createDate(board.getCreateDate())
                     .price(board.getPrice())
-                    .like(like)
+                    .like(board.getBoardLikes().size())
                     .build();
         }
     }

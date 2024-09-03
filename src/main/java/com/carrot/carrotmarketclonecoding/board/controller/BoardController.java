@@ -75,7 +75,7 @@ public class BoardController {
     @GetMapping
     public ResponseEntity<?> search(@RequestBody BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
         // TODO memberId -> JWT.getMemberId()
-        Long memberId = 1L;
+        Long memberId = null;
         PageResponseDto<BoardSearchResponseDto> boards = boardService.search(memberId, searchRequestDto, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
