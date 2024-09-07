@@ -15,9 +15,19 @@ public enum FailedMessage {
     FILE_NOT_EXISTS("파일이 존재하지 않습니다!"),
     FILE_UPLOAD_LIMIT("업로드 가능한 파일은 10개까지입니다!"),
     UNAUTHORIZED_ACCESS("접근권한을 가지고 있지 않습니다!"),
+
     MEMBER_ALREADY_LIKED_BOARD("이미 관심게시글로 등록한 게시글입니다!"),
     MEMBER_WORD_OVER_LIMIT("자주쓰는문구의 개수는 30개를 초과할 수 없습니다!"),
-    WORD_NOT_FOUND("존재하지 않는 자주쓰는문구입니다!");
+    WORD_NOT_FOUND("존재하지 않는 자주쓰는문구입니다!"),
+
+    TOKEN_EXPIRED_MESSAGE("토큰이 만료되었습니다!"),
+    TOKEN_NOT_VALID("잘못된 토큰입니다!"),
+    FORBIDDEN("접근권한이 없습니다!"),
+    ACCESS_DENIED("로그인을 시도해주세요!"),
+    TOKEN_NOT_EXISTS("토큰이 존재하지 않습니다!"),
+    KAKAO_TOKEN_NOT_EXISTS("카카오로부터 받아온 토큰이 존재하지 않습니다!"),
+    KAKAO_USER_INFO_NOT_EXISTS("카카오로부터 받아온 사용자 정보가 존재하지 않습니다!"),
+    REFRESH_TOKEN_NOT_MATCH("리프레시 토큰이 일치하지 않습니다!");
 
     private final String message;
 }

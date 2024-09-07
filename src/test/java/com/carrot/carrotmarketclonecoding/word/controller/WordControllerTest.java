@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.board.controller.BoardController;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
@@ -31,13 +32,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(WordController.class)
+@WebMvcTest(controllers = WordController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class WordControllerTest {
 
     @Autowired
