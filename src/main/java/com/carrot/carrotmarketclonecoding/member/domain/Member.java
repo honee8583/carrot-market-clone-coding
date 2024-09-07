@@ -30,4 +30,6 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private Long authId;
 }
