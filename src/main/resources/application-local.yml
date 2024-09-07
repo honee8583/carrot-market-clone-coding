@@ -28,3 +28,6 @@ server:
   serverAddress: localhost
 
 serverName: localhost
+logging:
+  level:
+    com.carrot.carrotmarketclonecoding.auth: DEBUG

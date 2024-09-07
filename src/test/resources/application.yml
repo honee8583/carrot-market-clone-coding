@@ -25,3 +25,11 @@ s3:
     bucket: ENC(DYBumT/r/jJNVv0aIdXL0suri5bX5EeMZse+xuS5mfI=)
     accessKey: ENC(9I+FNe3mBV4sCcP+wF5Wo1E0tWxa5I6Qh2VpT0nHzuU=)
     secretKey: ENC(h6QDcliPmdblNeU+SluXUxywb09NhatUUjRI9RJoaUcFkCOSieRxNcp9SXjQ1gWjjFufORPP2BA=)
+
+kakao:
+  client_id: ENC(3lReUAOOcDY3yjrs6RSPlfC4b4axnlefsmQbitKNXlt0QtmGxTmqcjRRP462SRox)
+
+jwt:
+  secret: ENC(AZSMHtQVuCDzJNRt1ln9wKpeKm13cB6U9zIp23MOjjyBNIOqa+X7lMeAo8ki+bmW)
+  expiration_time: ENC(Lo7/s4mCESUiz0GI8/WYGA==)
+  refresh_expiration_time: ENC(k/35hOfhQC6TeZV6bs7KwhQo3I844ujZ)
