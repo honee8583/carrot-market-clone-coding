@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
+import static com.carrot.carrotmarketclonecoding.board.displayname.BoardLikeTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
@@ -25,15 +27,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = BoardLikeController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WithCustomMockUser
+@WebMvcTest(controllers = BoardLikeController.class)
 class BoardLikeControllerTest {
 
     @Autowired
@@ -43,18 +45,19 @@ class BoardLikeControllerTest {
     private BoardLikeServiceImpl boardLikeService;
 
     @Nested
-    @DisplayName("관심게시글 등록 컨트롤러 테스트")
+    @DisplayName(ADD_BOARD_LIKE_CONTROLLER_TEST)
     class AddBoardLike {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void addBoardLikeSuccess() throws Exception {
             // given
             // when
             doNothing().when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L))
+            mvc.perform(post("/board/like/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.status", equalTo(201)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -63,14 +66,15 @@ class BoardLikeControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 게시글이 존재하지 않음")
+        @DisplayName(FAIL_BOARD_NOT_FOUND)
         void addBoardLikeFailBoardNotFound() throws Exception {
             // given
             // when
             doThrow(BoardNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L))
+            mvc.perform(post("/board/like/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -79,14 +83,15 @@ class BoardLikeControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void addBoardLikeFailMemberNotFound() throws Exception {
             // given
             // when
             doThrow(MemberNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L))
+            mvc.perform(post("/board/like/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -95,14 +100,15 @@ class BoardLikeControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자가 이미 관심게시글로 등록한 게시글임")
+        @DisplayName(FAIL_BOARD_LIKE_ALREADY_ADDED)
         void addBoardLikeFailMemberAlreadyLikedBoard() throws Exception {
             // given
             // when
             doThrow(MemberAlreadyLikedBoardException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L))
+            mvc.perform(post("/board/like/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -112,11 +118,11 @@ class BoardLikeControllerTest {
     }
 
     @Nested
-    @DisplayName("관심게시글 목록 조회 컨트롤러 테스트")
+    @DisplayName(GET_BOARD_LIKE_LIST_CONTROLLER_TEST)
     class MemberLikedBoards {
 
         @Test
-        @DisplayName("성공")
+        @DisplayName(SUCCESS)
         void memberLikedBoardsSuccess() throws Exception {
             // given
             List<BoardSearchResponseDto> response = Arrays.asList(
@@ -130,7 +136,7 @@ class BoardLikeControllerTest {
 
             // then
             mvc.perform(get("/board/like")
-                    .param("page", "0"))
+                            .param("page", "0"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -143,7 +149,7 @@ class BoardLikeControllerTest {
         }
 
         @Test
-        @DisplayName("실패 - 사용자 존재하지 않음")
+        @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void memberLikedBoardsFailMemberNotFound() throws Exception {
             // given
             // when
@@ -151,7 +157,7 @@ class BoardLikeControllerTest {
 
             // then
             mvc.perform(get("/board/like")
-                    .param("page", "0"))
+                            .param("page", "0"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))

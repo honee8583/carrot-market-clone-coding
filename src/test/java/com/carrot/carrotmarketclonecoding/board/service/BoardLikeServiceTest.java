@@ -64,7 +64,7 @@ class BoardLikeServiceTest {
             Member mockMember = mock(Member.class);
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             // when
             boardLikeService.add(boardId, memberId);
@@ -81,13 +81,11 @@ class BoardLikeServiceTest {
         @DisplayName("실패 - 게시글 존재하지 않음")
         void addBoardLikeFailBoardNotFound() {
             // given
-            Long boardId = 1L;
-            Long memberId = 1L;
             when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardLikeService.add(boardId, memberId))
+            assertThatThrownBy(() -> boardLikeService.add(1L, 1L))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
@@ -96,16 +94,12 @@ class BoardLikeServiceTest {
         @DisplayName("실패 - 사용자 존재하지 않음")
         void addBoardLikeFailMemberNotFound() {
             // given
-            Long boardId = 1L;
-            Long memberId = 1L;
-            Board mockBoard = mock(Board.class);
-
-            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mock(Board.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardLikeService.add(boardId, memberId))
+            assertThatThrownBy(() -> boardLikeService.add(1L, 1L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -114,19 +108,13 @@ class BoardLikeServiceTest {
         @DisplayName("실패 - 사용자가 이미 관심게시글로 등록한 게시글임")
         void addBoardLikeFailMemberAlreadyLikedBoard() {
             // given
-            Long boardId = 1L;
-            Long memberId = 1L;
-            Board mockBoard = mock(Board.class);
-            Member mockMember = mock(Member.class);
-            BoardLike mockBoardLike = mock(BoardLike.class);
-
-            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
-            when(boardLikeRepository.findByBoardAndMember(any(), any())).thenReturn(Optional.of(mockBoardLike));
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mock(Board.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(boardLikeRepository.findByBoardAndMember(any(), any())).thenReturn(Optional.of(mock(BoardLike.class)));
 
             // when
             // then
-            assertThatThrownBy(() -> boardLikeService.add(boardId, memberId))
+            assertThatThrownBy(() -> boardLikeService.add(1L, 1L))
                     .isInstanceOf(MemberAlreadyLikedBoardException.class)
                     .hasMessage(MEMBER_ALREADY_LIKED_BOARD.getMessage());
         }
@@ -140,19 +128,17 @@ class BoardLikeServiceTest {
         @DisplayName("성공")
         void memberLikedBoardsSuccess() {
             // given
-            Long memberId = 1L;
-            Member mockMember = mock(Member.class);
             Pageable pageable = PageRequest.of(0, 10);
             List<BoardSearchResponseDto> boardSearchResponse = Arrays.asList(
                     new BoardSearchResponseDto(),
                     new BoardSearchResponseDto()
             );
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(boardRepository.searchMemberLikedBoards(any(), any())).thenReturn(new PageImpl<>(boardSearchResponse, pageable, boardSearchResponse.size()));
 
             // when
-            PageResponseDto<BoardSearchResponseDto> result = boardLikeService.getMemberLikedBoards(memberId, pageable);
+            PageResponseDto<BoardSearchResponseDto> result = boardLikeService.getMemberLikedBoards(1L, pageable);
 
             // then
             assertThat(result.getContents().size()).isEqualTo(2);
@@ -162,7 +148,7 @@ class BoardLikeServiceTest {
         @DisplayName("실패 - 사용자가 존재하지 않음")
         void memberLikedBoardsFailMemberNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then

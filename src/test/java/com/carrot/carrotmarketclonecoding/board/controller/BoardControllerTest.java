@@ -1,6 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
-import static com.carrot.carrotmarketclonecoding.board.BoardTestDisplayNames.MESSAGE.*;
+import static com.carrot.carrotmarketclonecoding.board.displayname.BoardTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
@@ -41,18 +42,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(controllers = BoardController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WithCustomMockUser
+@WebMvcTest(controllers = BoardController.class)
 class BoardControllerTest {
 
     @Autowired
@@ -69,12 +70,14 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void boardRegisterSuccess() throws Exception {
             // given
+
             // when
-            when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
+            when(boardService.register(any(), any(), anyBoolean())).thenReturn(1L);
 
             // then
             mvc.perform(post("/board/register")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
@@ -98,6 +101,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(post("/board/register/tmp")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
@@ -149,6 +153,7 @@ class BoardControllerTest {
                             .param("suggest", "true")
                             .param("description", "description")
                             .param("place", "place")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA))
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.status", equalTo(500)))
@@ -167,6 +172,7 @@ class BoardControllerTest {
             // when
             // then
             mvc.perform(post("/board/register")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "")
                             .param("categoryId", "1")
@@ -191,6 +197,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(post("/board/register")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
@@ -215,6 +222,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(post("/board/register")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
@@ -260,13 +268,12 @@ class BoardControllerTest {
         @DisplayName(FAIL_BOARD_NOT_FOUND)
         void boardDetailBoardNotFound() throws Exception {
             // given
-            Long boardId = 1L;
 
             // when
             when(boardService.detail(anyLong(), anyString())).thenThrow(new BoardNotFoundException());
 
             // then
-            mvc.perform(get("/board/{id}", boardId))
+            mvc.perform(get("/board/{id}", 1L))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -294,7 +301,7 @@ class BoardControllerTest {
                     .build();
 
             // when
-            when(boardService.search(any(), any(), any())).thenReturn(response);
+            when(boardService.search(anyLong(), any(), any())).thenReturn(response);
 
             // then
             mvc.perform(get("/board")
@@ -397,6 +404,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(patch("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
@@ -421,6 +429,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(patch("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
@@ -445,6 +454,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(patch("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
@@ -469,6 +479,7 @@ class BoardControllerTest {
 
             // then
             mvc.perform(patch("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
@@ -499,7 +510,8 @@ class BoardControllerTest {
             doNothing().when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", boardId))
+            mvc.perform(delete("/board/{id}", boardId)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -517,7 +529,8 @@ class BoardControllerTest {
             doThrow(BoardNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", boardId))
+            mvc.perform(delete("/board/{id}", boardId)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -533,7 +546,8 @@ class BoardControllerTest {
             doThrow(MemberNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", 1L))
+            mvc.perform(delete("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -549,7 +563,8 @@ class BoardControllerTest {
             doThrow(UnauthorizedAccessException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", 1L))
+            mvc.perform(delete("/board/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.status", equalTo(403)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -607,7 +622,8 @@ class BoardControllerTest {
 
             // then
             mvc.perform(get("/board/tmp")
-                    .contentType(MediaType.APPLICATION_JSON))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))

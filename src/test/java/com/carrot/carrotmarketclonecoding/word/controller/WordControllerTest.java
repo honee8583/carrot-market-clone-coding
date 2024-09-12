@@ -2,7 +2,7 @@ package com.carrot.carrotmarketclonecoding.word.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
-import static com.carrot.carrotmarketclonecoding.word.WordTestDisplayNames.MESSAGE.*;
+import static com.carrot.carrotmarketclonecoding.word.displayname.WordTestDisplayNames.MESSAGE.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.board.controller.BoardController;
+import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
@@ -32,15 +32,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(controllers = WordController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WithCustomMockUser
+@WebMvcTest(controllers = WordController.class)
 class WordControllerTest {
 
     @Autowired
@@ -62,6 +62,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(post("/word")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isCreated())
@@ -81,6 +82,7 @@ class WordControllerTest {
             // when
             // then
             mvc.perform(post("/word")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto())))
                     .andExpect(status().isBadRequest())
@@ -100,6 +102,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(post("/word")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isUnauthorized())
@@ -118,6 +121,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(post("/word")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isBadRequest())
@@ -183,6 +187,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(put("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isOk())
@@ -201,6 +206,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(put("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isUnauthorized())
@@ -219,6 +225,7 @@ class WordControllerTest {
 
             // then
             mvc.perform(put("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(new WordRequestDto("word"))))
                     .andExpect(status().isBadRequest())
@@ -242,7 +249,8 @@ class WordControllerTest {
             doNothing().when(wordService).remove(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/word/{id}", 1L))
+            mvc.perform(delete("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -258,7 +266,8 @@ class WordControllerTest {
             doThrow(MemberNotFoundException.class).when(wordService).remove(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/word/{id}", 1L))
+            mvc.perform(delete("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -274,7 +283,8 @@ class WordControllerTest {
             doThrow(WordNotFoundException.class).when(wordService).remove(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/word/{id}", 1L))
+            mvc.perform(delete("/word/{id}", 1L)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status", equalTo(400)))
                     .andExpect(jsonPath("$.result", equalTo(false)))

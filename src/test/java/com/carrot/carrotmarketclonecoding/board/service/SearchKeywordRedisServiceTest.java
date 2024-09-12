@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @DataRedisTest
 @ExtendWith(RedisContainerConfig.class)
-class SearchKeywordServiceTest {
+class SearchKeywordRedisServiceTest {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
