@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.board.service.impl;
+package com.carrot.carrotmarketclonecoding.board.service;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static org.assertj.core.api.Assertions.*;
@@ -9,6 +9,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
+import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
 import java.util.stream.IntStream;

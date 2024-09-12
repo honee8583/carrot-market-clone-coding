@@ -1,7 +1,7 @@
 package com.carrot.carrotmarketclonecoding.word.service;
 
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
-import static com.carrot.carrotmarketclonecoding.word.WordTestDisplayNames.MESSAGE.*;
+import static com.carrot.carrotmarketclonecoding.word.displayname.WordTestDisplayNames.MESSAGE.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -55,7 +55,7 @@ class WordServiceTest {
             Member mockMember = mock(Member.class);
             WordRequestDto wordRequestDto = new WordRequestDto("word");
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.countByMember(any())).thenReturn(10);
 
             // when
@@ -75,7 +75,7 @@ class WordServiceTest {
             Long memberId = 1L;
             WordRequestDto wordRequestDto = new WordRequestDto("word");
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -92,7 +92,7 @@ class WordServiceTest {
             Member mockMember = mock(Member.class);
             WordRequestDto wordRequestDto = new WordRequestDto("word");
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.countByMember(any())).thenReturn(30);
 
             // when
@@ -117,7 +117,7 @@ class WordServiceTest {
                     Word.builder().id(2L).word("word2").build()
             );
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(wordRepository.findAllByMember(any())).thenReturn(words);
 
             // when
@@ -135,13 +135,11 @@ class WordServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void getWordsFailMemberNotFound() {
             // given
-            Long memberId = 1L;
-
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> wordService.list(memberId))
+            assertThatThrownBy(() -> wordService.list(1L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -160,7 +158,7 @@ class WordServiceTest {
             Member mockMember = mock(Member.class);
             Word mockWord = Word.builder().word("word1").build();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.findById(anyLong())).thenReturn(Optional.of(mockWord));
 
             // when
@@ -174,7 +172,7 @@ class WordServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void updateWordFailMemberNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -187,7 +185,7 @@ class WordServiceTest {
         @DisplayName(FAIL_WORD_NOT_FOUND)
         void updateWordFailWordNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(wordRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
@@ -210,7 +208,7 @@ class WordServiceTest {
             Long wordId = 1L;
             Member mockMember = mock(Member.class);
             Word mockWord = mock(Word.class);
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(wordRepository.findById(anyLong())).thenReturn(Optional.of(mockWord));
 
             // when
@@ -224,7 +222,7 @@ class WordServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void removeWordFailMemberNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -237,7 +235,7 @@ class WordServiceTest {
         @DisplayName(FAIL_WORD_NOT_FOUND)
         void removeWordFailWordNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(wordRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when

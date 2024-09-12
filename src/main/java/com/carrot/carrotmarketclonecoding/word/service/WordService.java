@@ -5,11 +5,11 @@ import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListRespo
 import java.util.List;
 
 public interface WordService {
-    void add(Long memberId, WordRequestDto wordRequestDto);
+    void add(Long authId, WordRequestDto wordRequestDto);
 
-    List<WordListResponseDto> list(Long memberId);
+    List<WordListResponseDto> list(Long authId);
 
-    void update(Long memberId, Long wordId, WordRequestDto wordRequestDto);
+    void update(Long authId, Long wordId, WordRequestDto wordRequestDto);
 
-    void remove(Long memberId, Long wordId);
+    void remove(Long authId, Long wordId);
 }

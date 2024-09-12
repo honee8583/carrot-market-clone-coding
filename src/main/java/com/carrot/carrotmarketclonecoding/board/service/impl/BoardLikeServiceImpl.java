@@ -27,9 +27,9 @@ public class BoardLikeServiceImpl implements BoardLikeService {
     private final MemberRepository memberRepository;
 
     @Override
-    public void add(Long boardId, Long memberId) {
+    public void add(Long boardId, Long authId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
 
         Optional<BoardLike> boardLike = boardLikeRepository.findByBoardAndMember(board, member);
         if (boardLike.isPresent()) {
@@ -44,8 +44,8 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<BoardSearchResponseDto> getMemberLikedBoards(Long memberId, Pageable pageable) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public PageResponseDto<BoardSearchResponseDto> getMemberLikedBoards(Long authId, Pageable pageable) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         return new PageResponseDto<>(boardRepository.searchMemberLikedBoards(member, pageable));
     }
 }

@@ -35,11 +35,10 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
     }
 
     @Override
-    public Page<BoardSearchResponseDto> findAllByMemberAndSearchRequestDto(Member member, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
+    public Page<BoardSearchResponseDto> findAllBySearchRequestDto(BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         List<Board> boards = queryFactory
                 .selectFrom(board)
                 .where(
-                        memberEq(member),
                         titleContains(searchRequestDto.getKeyword()),
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),
@@ -55,7 +54,6 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .select(board.count())
                 .from(board)
                 .where(
-                        memberEq(member),
                         titleContains(searchRequestDto.getKeyword()),
                         priceBetween(searchRequestDto.getMinPrice(), searchRequestDto.getMaxPrice()),
                         categoryEq(searchRequestDto.getCategoryId()),

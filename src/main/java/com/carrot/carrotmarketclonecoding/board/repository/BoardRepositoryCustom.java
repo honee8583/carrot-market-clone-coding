@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface BoardRepositoryCustom {
-    Page<BoardSearchResponseDto> findAllByMemberAndSearchRequestDto(Member member, BoardSearchRequestDto searchRequestDto, Pageable pageable);
+    Page<BoardSearchResponseDto> findAllBySearchRequestDto(BoardSearchRequestDto searchRequestDto, Pageable pageable);
 
     Page<BoardSearchResponseDto> searchMemberLikedBoards(Member member, Pageable pageable);
 

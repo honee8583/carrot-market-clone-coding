@@ -10,17 +10,17 @@ import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import org.springframework.data.domain.Pageable;
 
 public interface BoardService {
-    Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp);
+    Long register(BoardRegisterRequestDto registerRequestDto, Long authId, boolean tmp);
 
     BoardDetailResponseDto detail(Long boardId, String sessionId);
 
     BoardDetailResponseDto tmpBoardDetail(Long memberId);
 
-    PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable);
+    PageResponseDto<BoardSearchResponseDto> search(Long authId, BoardSearchRequestDto searchRequestDto, Pageable pageable);
 
-    PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long memberId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable);
+    PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long authId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable);
 
-    void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long memberId);
+    void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long authId);
 
-    void delete(Long boardId, Long memberId);
+    void delete(Long boardId, Long authId);
 }

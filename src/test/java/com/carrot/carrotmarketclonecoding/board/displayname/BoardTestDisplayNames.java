@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.board;
+package com.carrot.carrotmarketclonecoding.board.displayname;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

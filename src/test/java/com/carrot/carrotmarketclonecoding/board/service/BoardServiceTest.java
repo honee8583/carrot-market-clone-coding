@@ -1,6 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.service;
 
-import static com.carrot.carrotmarketclonecoding.board.BoardTestDisplayNames.MESSAGE.*;
+import static com.carrot.carrotmarketclonecoding.board.displayname.BoardTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -79,7 +79,7 @@ class BoardServiceTest {
     private BoardPictureService boardPictureService;
 
     @Mock
-    private SearchKeywordService searchKeywordService;
+    private SearchKeywordRedisService searchKeywordRedisService;
 
     @Nested
     @DisplayName(BOARD_REGISTER_SERVICE_TEST)
@@ -108,11 +108,10 @@ class BoardServiceTest {
                             .tmp(false)
                             .build();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
             when(boardRepository.save(any(Board.class))).thenReturn(mockBoard);
 
-            // 저장해서 얻은 Board 객체의 정보를 가지고 사진을 업로드할때의 인자값과 일치하는지 확인
             ArgumentCaptor<Board> boardCaptor = ArgumentCaptor.forClass(Board.class);
 
             // when
@@ -143,7 +142,7 @@ class BoardServiceTest {
             Board mockBoard = Board.builder().id(boardId).build();
 
             // when
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
             when(boardRepository.save(any(Board.class))).thenReturn(mockBoard);
             doThrow(FileUploadLimitException.class).when(boardPictureService).uploadPicturesIfExistAndUnderLimit(any(), any());
@@ -162,7 +161,7 @@ class BoardServiceTest {
             Member mockMember = Member.builder().id(memberId).build();
             BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
@@ -179,7 +178,7 @@ class BoardServiceTest {
             Long memberId = 1L;
             BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
 
-            when(memberRepository.findById(any())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(any())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -309,15 +308,15 @@ class BoardServiceTest {
                     .order(SearchOrder.NEWEST)
                     .build();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
-            when(boardRepository.findAllByMemberAndSearchRequestDto(any(), any(), any())).thenReturn(searchResult);
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+            when(boardRepository.findAllBySearchRequestDto(any(), any())).thenReturn(searchResult);
 
             // when
             PageResponseDto<BoardSearchResponseDto> response = boardService.search(memberId, searchRequestDto, pageable);
 
             // then
-            verify(searchKeywordService).addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
-            verify(searchKeywordService).addSearchKeywordRank(searchRequestDto.getKeyword());
+            verify(searchKeywordRedisService).addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
+            verify(searchKeywordRedisService).addSearchKeywordRank(searchRequestDto.getKeyword());
             assertThat(response.getContents().size()).isEqualTo(2);
         }
 
@@ -325,7 +324,7 @@ class BoardServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsFailMemberNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -351,7 +350,7 @@ class BoardServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             Page<BoardSearchResponseDto> searchResult = new PageImpl<>(boardSearchResponses, pageable, 2);
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
             when(boardRepository.findAllByStatusOrHide(any(), any(), any())).thenReturn(searchResult);
 
             // when
@@ -366,7 +365,7 @@ class BoardServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsFailMemberNotFound() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -407,7 +406,7 @@ class BoardServiceTest {
             updateRequestDto.setDescription("updated description");
             updateRequestDto.setPlace("updated place");
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
@@ -448,7 +447,7 @@ class BoardServiceTest {
 
             BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
@@ -463,7 +462,7 @@ class BoardServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void updateBoardFailMemberNotExists() {
             // given
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -478,8 +477,7 @@ class BoardServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
-            Member mockMember = Member.builder().id(memberId).build();
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(Member.builder().id(memberId).build()));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
@@ -500,7 +498,7 @@ class BoardServiceTest {
                     .id(boardId)
                     .member(Member.builder().id(2L).build())
                     .build();
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
 
             // when
@@ -517,9 +515,13 @@ class BoardServiceTest {
             Long boardId = 1L;
             Long memberId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
-            Board mockBoard = Board.builder().id(boardId).member(mockMember).tmp(false).build();
+            Board mockBoard = Board.builder()
+                    .id(boardId)
+                    .member(mockMember)
+                    .tmp(false)
+                    .build();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -539,14 +541,19 @@ class BoardServiceTest {
             Long categoryId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
             Category mockCategory = Category.builder().id(categoryId).build();
-            Board mockBoard = Board.builder().id(boardId).member(mockMember).category(mockCategory).tmp(false).build();
+            Board mockBoard = Board.builder()
+                    .id(boardId)
+                    .member(mockMember)
+                    .category(mockCategory)
+                    .tmp(false)
+                    .build();
 
             MultipartFile[] files = createFiles(20);
             BoardUpdateRequestDto updateRequestDto = new BoardUpdateRequestDto();
             updateRequestDto.setNewPictures(files);
             updateRequestDto.setCategoryId(categoryId);
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
             doThrow(FileUploadLimitException.class).when(boardPictureService).uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), mockBoard);
@@ -587,7 +594,7 @@ class BoardServiceTest {
             Board mockBoard = Board.builder().id(boardId).member(mockMember).build();
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             // when
             boardService.delete(boardId, memberId);
@@ -602,14 +609,11 @@ class BoardServiceTest {
         @DisplayName(FAIL_BOARD_NOT_FOUND)
         void deleteBoardFailBoardNotFound() {
             // given
-            Long boardId = 1L;
-            Long memberId = 1L;
-
             when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.delete(boardId, memberId))
+            assertThatThrownBy(() -> boardService.delete(1L, 1L))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
@@ -620,10 +624,9 @@ class BoardServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
-            Board mockBoard = Board.builder().id(boardId).build();
 
-            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(Board.builder().id(boardId).build()));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
@@ -642,7 +645,7 @@ class BoardServiceTest {
             Board mockBoard = Board.builder().id(boardId).member(Member.builder().id(2L).build()).build();
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             // when
             // then
@@ -668,7 +671,7 @@ class BoardServiceTest {
             Member mockMember = Member.builder().id(memberId).build();
             Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.of(mockBoard));
 
             // when
@@ -685,7 +688,7 @@ class BoardServiceTest {
             Long memberId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
 
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.empty());
 
             // when
@@ -699,12 +702,11 @@ class BoardServiceTest {
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void tmpBoardDetailFailMemberNotFound() {
             // given
-            Long memberId = 1L;
-            when(memberRepository.findById(anyLong())).thenReturn(Optional.empty());
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.tmpBoardDetail(memberId))
+            assertThatThrownBy(() -> boardService.tmpBoardDetail(1L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }

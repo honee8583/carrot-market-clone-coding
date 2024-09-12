@@ -1,6 +1,6 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
-import static com.carrot.carrotmarketclonecoding.board.SearchKeywordTestDisplayNames.MESSAGE.*;
+import static com.carrot.carrotmarketclonecoding.board.displayname.SearchKeywordTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,7 +15,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.board.service.impl.SearchKeywordServiceImpl;
+import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,21 +26,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = SearchKeywordController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WithCustomMockUser
+@WebMvcTest(controllers = SearchKeywordController.class)
 class SearchKeywordControllerTest {
 
     @Autowired
     private MockMvc mvc;
 
     @MockBean
-    private SearchKeywordServiceImpl searchKeywordService;
+    private SearchKeywordService searchKeywordService;
 
     @Nested
     @DisplayName(SEARCH_KEYWORD_TOP_RANK_CONTROLLER_TEST)
@@ -123,6 +124,7 @@ class SearchKeywordControllerTest {
 
             // then
             mvc.perform(delete("/search/recent")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .param("keyword", "keyword"))
                     .andExpect(status().isOk())
@@ -142,8 +144,9 @@ class SearchKeywordControllerTest {
 
             // then
             mvc.perform(delete("/search/recent")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .param("keyword", "keyword"))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("keyword", "keyword"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
@@ -164,7 +167,8 @@ class SearchKeywordControllerTest {
             doNothing().when(searchKeywordService).removeAllRecentSearchKeywords(anyLong());
 
             // then
-            mvc.perform(delete("/search/recent/all"))
+            mvc.perform(delete("/search/recent/all")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", equalTo(200)))
                     .andExpect(jsonPath("$.result", equalTo(true)))
@@ -180,7 +184,8 @@ class SearchKeywordControllerTest {
             doThrow(MemberNotFoundException.class).when(searchKeywordService).removeAllRecentSearchKeywords(anyLong());
 
             // then
-            mvc.perform(delete("/search/recent/all"))
+            mvc.perform(delete("/search/recent/all")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.status", equalTo(401)))
                     .andExpect(jsonPath("$.result", equalTo(false)))
