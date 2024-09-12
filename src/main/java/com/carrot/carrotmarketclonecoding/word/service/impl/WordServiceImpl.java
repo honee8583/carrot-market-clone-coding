@@ -25,8 +25,8 @@ public class WordServiceImpl implements WordService {
     private static final int WORD_LIMIT = 30;
 
     @Override
-    public void add(Long memberId, WordRequestDto wordRequestDto) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public void add(Long authId, WordRequestDto wordRequestDto) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         isWordTotalOverLimit(wordRepository.countByMember(member));
         Word word = Word.createWord(wordRequestDto, member);
         wordRepository.save(word);
@@ -34,22 +34,22 @@ public class WordServiceImpl implements WordService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<WordListResponseDto> list(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public List<WordListResponseDto> list(Long authId) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         List<Word> words = wordRepository.findAllByMember(member);
         return words.stream().map(WordListResponseDto::createWordListResponseDto).toList();
     }
 
     @Override
-    public void update(Long memberId, Long wordId, WordRequestDto wordRequestDto) {
-        memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public void update(Long authId, Long wordId, WordRequestDto wordRequestDto) {
+        memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Word word = wordRepository.findById(wordId).orElseThrow(WordNotFoundException::new);
         word.update(wordRequestDto);
     }
 
     @Override
-    public void remove(Long memberId, Long wordId) {
-        memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public void remove(Long authId, Long wordId) {
+        memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Word word = wordRepository.findById(wordId).orElseThrow(WordNotFoundException::new);
         wordRepository.delete(word);
     }

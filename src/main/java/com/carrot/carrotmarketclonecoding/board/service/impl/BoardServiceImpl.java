@@ -13,7 +13,7 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepositor
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
-import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
+import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordRedisService;
 import com.carrot.carrotmarketclonecoding.board.service.VisitService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
@@ -24,12 +24,10 @@ import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -41,11 +39,11 @@ public class BoardServiceImpl implements BoardService {
     private final BoardLikeRepository boardLikeRepository;
     private final VisitService visitService;
     private final BoardPictureService boardPictureService;
-    private final SearchKeywordService searchKeywordService;
+    private final SearchKeywordRedisService searchKeywordRedisService;
 
     @Override
-    public Long register(BoardRegisterRequestDto registerRequestDto, Long memberId, boolean tmp) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public Long register(BoardRegisterRequestDto registerRequestDto, Long authId, boolean tmp) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Category category = findCategoryIfCategoryIdNotNull(registerRequestDto.getCategoryId());
         Board board = Board.createBoard(registerRequestDto, member, category, tmp);
         board.setPriceZeroIfMethodIsShare();
@@ -71,8 +69,8 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional(readOnly = true)
-    public BoardDetailResponseDto tmpBoardDetail(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public BoardDetailResponseDto tmpBoardDetail(Long authId) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Optional<Board> board = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member);
 
         if (board.isPresent()) {
@@ -84,26 +82,26 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<BoardSearchResponseDto> search(Long memberId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
+    public PageResponseDto<BoardSearchResponseDto> search(Long authId, BoardSearchRequestDto searchRequestDto, Pageable pageable) {
         Member member = null;
-        if (isLogin(memberId)) {
-            member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-            searchKeywordService.addRecentSearchKeywords(memberId, searchRequestDto.getKeyword());
-            searchKeywordService.addSearchKeywordRank(searchRequestDto.getKeyword());
+        if (isLogin(authId)) {
+            member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+            searchKeywordRedisService.addRecentSearchKeywords(member.getId(), searchRequestDto.getKeyword());
+            searchKeywordRedisService.addSearchKeywordRank(searchRequestDto.getKeyword());
         }
-        return new PageResponseDto<>(boardRepository.findAllByMemberAndSearchRequestDto(member, searchRequestDto, pageable));
+        return new PageResponseDto<>(boardRepository.findAllBySearchRequestDto(searchRequestDto, pageable));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long memberId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long authId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         return new PageResponseDto<>(boardRepository.findAllByStatusOrHide(member, searchRequestDto, pageable));
     }
 
     @Override
-    public void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+    public void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long authId) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         isWriterOfBoard(board, member);
         if (board.getTmp()) {
@@ -118,9 +116,9 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public void delete(Long boardId, Long memberId) {
+    public void delete(Long boardId, Long authId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
-        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         isWriterOfBoard(board, member);
         boardLikeRepository.deleteAllByBoardId(boardId);
         boardPictureRepository.deleteAllByBoardId(boardId);
@@ -141,7 +139,7 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-    private boolean isLogin(Long memberId) {
-        return memberId != null && memberId > 0L;
+    private boolean isLogin(Long authId) {
+        return authId != null && authId > 0L;
     }
 }
