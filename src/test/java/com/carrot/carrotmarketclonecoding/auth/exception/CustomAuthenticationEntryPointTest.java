@@ -5,7 +5,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
-import com.carrot.carrotmarketclonecoding.auth.util.LoginResponseUtil;
+import com.carrot.carrotmarketclonecoding.auth.util.ResponseUtil;
 import com.carrot.carrotmarketclonecoding.common.response.FailedMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,13 +42,12 @@ class CustomAuthenticationEntryPointTest {
 
         when(request.getAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE)).thenReturn(message);
 
-        try (MockedStatic<LoginResponseUtil> mockedStatic = mockStatic(LoginResponseUtil.class)) {
+        try (MockedStatic<ResponseUtil> mockedStatic = mockStatic(ResponseUtil.class)) {
             // when
             authenticationEntryPoint.commence(request, response, authException);
 
             // then
-            mockedStatic.verify(() -> LoginResponseUtil.fail(eq(response), eq(message), eq(HttpStatus.UNAUTHORIZED)));
+            mockedStatic.verify(() -> ResponseUtil.fail(eq(response), eq(message), eq(HttpStatus.UNAUTHORIZED)));
         }
     }
-
 }

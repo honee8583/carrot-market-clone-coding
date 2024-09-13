@@ -4,9 +4,12 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.F
 
 import com.carrot.carrotmarketclonecoding.auth.exception.CustomAuthenticationEntryPoint;
 import com.carrot.carrotmarketclonecoding.auth.filter.JwtAuthorizationFilter;
+import com.carrot.carrotmarketclonecoding.auth.service.LogoutHandlerImpl;
+import com.carrot.carrotmarketclonecoding.auth.service.LogoutSuccessHandlerImpl;
+import com.carrot.carrotmarketclonecoding.auth.service.RefreshTokenRedisService;
 import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
-import com.carrot.carrotmarketclonecoding.auth.util.LoginResponseUtil;
-import lombok.extern.slf4j.Slf4j;
+import com.carrot.carrotmarketclonecoding.auth.util.ResponseUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -19,13 +22,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtUtil jwtUtil;
+    private final RefreshTokenRedisService redisService;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -33,8 +39,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthorizationFilter jwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public JwtAuthorizationFilter jwtAuthorizationFilter(AuthenticationManager authenticationManager) {
         return new JwtAuthorizationFilter(authenticationManager, jwtUtil);
+    }
+
+    @Bean
+    public LogoutHandlerImpl logoutHandlerService() {
+        return new LogoutHandlerImpl(jwtUtil, redisService);
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
+        return new LogoutSuccessHandlerImpl();
     }
 
     @Bean
@@ -51,12 +67,18 @@ public class SecurityConfig {
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable);
 
-        http.addFilterBefore(jwtAuthorizationFilter(authenticationManager(http), new JwtUtil()), UsernamePasswordAuthenticationFilter.class);
+        http.logout(logout -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(logoutHandlerService())
+                .logoutSuccessHandler(logoutSuccessHandler())
+        );
+
+        http.addFilterBefore(jwtAuthorizationFilter(authenticationManager(http)), UsernamePasswordAuthenticationFilter.class);
 
         http.exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    LoginResponseUtil.fail(response, FORBIDDEN.getMessage(), HttpStatus.FORBIDDEN);
+                    ResponseUtil.fail(response, FORBIDDEN.getMessage(), HttpStatus.FORBIDDEN);
                 }));
 
         http.authorizeHttpRequests(authorize -> authorize
