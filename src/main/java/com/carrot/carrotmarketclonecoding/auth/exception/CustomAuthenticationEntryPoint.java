@@ -1,7 +1,7 @@
 package com.carrot.carrotmarketclonecoding.auth.exception;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
-import com.carrot.carrotmarketclonecoding.auth.util.LoginResponseUtil;
+import com.carrot.carrotmarketclonecoding.auth.util.ResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,7 +16,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
         if (request.getAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE) != null) {
-            LoginResponseUtil.fail(response, request.getAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE).toString(), HttpStatus.UNAUTHORIZED);
+            ResponseUtil.fail(response, request.getAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE).toString(), HttpStatus.UNAUTHORIZED);
         }
     }
 }
