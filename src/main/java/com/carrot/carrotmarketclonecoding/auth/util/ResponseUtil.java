@@ -1,7 +1,5 @@
 package com.carrot.carrotmarketclonecoding.auth.util;
 
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.LOGIN_SUCCESS;
-
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 @Slf4j
-public class LoginResponseUtil {
+public class ResponseUtil {
 
-    public static void success(HttpServletResponse response, Object data) {
+    public static void success(HttpServletResponse response, String msg, Object data) {
         try {
             ObjectMapper om = new ObjectMapper();
-            ResponseResult result = ResponseResult.success(HttpStatus.OK, LOGIN_SUCCESS.getMessage(), data);
+            ResponseResult result = ResponseResult.success(HttpStatus.OK, msg, data);
             String responseBody = om.writeValueAsString(result);
 
             response.setContentType("application/json; charset=utf-8");
