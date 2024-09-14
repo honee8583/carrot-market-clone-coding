@@ -28,6 +28,7 @@ s3:
 
 kakao:
   client_id: ENC(3lReUAOOcDY3yjrs6RSPlfC4b4axnlefsmQbitKNXlt0QtmGxTmqcjRRP462SRox)
+  admin-key: ENC(XX6kopdlBAf5/uJgp2P8qWu1nDjxQ3wL+UWnWFA8zm5BDas5s1PI7lPYO7wnJZf1)
 
 jwt:
   secret: ENC(AZSMHtQVuCDzJNRt1ln9wKpeKm13cB6U9zIp23MOjjyBNIOqa+X7lMeAo8ki+bmW)

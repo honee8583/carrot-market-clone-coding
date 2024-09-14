@@ -25,7 +25,6 @@ public class Member extends BaseEntity {
     private String nickname;
     private String profileUrl;
     private String town;
-    private Boolean withdraw;
     private Boolean isTownAuthenticated;
 
     @Enumerated(EnumType.STRING)

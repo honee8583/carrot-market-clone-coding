@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.auth.service;
+package com.carrot.carrotmarketclonecoding.auth.handler;
 
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.LOGOUT_SUCCESS;
 

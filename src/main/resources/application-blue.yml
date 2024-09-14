@@ -23,7 +23,3 @@ server:
   serverAddress: ENC(dXcnoqAIp/O+aKQGMpLwNJ66ajoubJLH)
 
 serverName: blue_server
-
-kakao:
-  client_id: ENC(3lReUAOOcDY3yjrs6RSPlfC4b4axnlefsmQbitKNXlt0QtmGxTmqcjRRP462SRox)
-  redirect_uri: ENC(4+7kO9DaQ/b2Z2ebMbE7FQeoB2zHMoTIl2zwwtAqhRChhm5FOJtD7H9VYJYpEkrb)

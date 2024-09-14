@@ -4,9 +4,9 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.F
 
 import com.carrot.carrotmarketclonecoding.auth.exception.CustomAuthenticationEntryPoint;
 import com.carrot.carrotmarketclonecoding.auth.filter.JwtAuthorizationFilter;
-import com.carrot.carrotmarketclonecoding.auth.service.LogoutHandlerImpl;
-import com.carrot.carrotmarketclonecoding.auth.service.LogoutSuccessHandlerImpl;
-import com.carrot.carrotmarketclonecoding.auth.service.RefreshTokenRedisService;
+import com.carrot.carrotmarketclonecoding.auth.handler.LogoutHandlerImpl;
+import com.carrot.carrotmarketclonecoding.auth.handler.LogoutSuccessHandlerImpl;
+import com.carrot.carrotmarketclonecoding.auth.service.LoginService;
 import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
 import com.carrot.carrotmarketclonecoding.auth.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
-    private final RefreshTokenRedisService redisService;
+    private final LoginService loginService;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -45,7 +45,7 @@ public class SecurityConfig {
 
     @Bean
     public LogoutHandlerImpl logoutHandlerService() {
-        return new LogoutHandlerImpl(jwtUtil, redisService);
+        return new LogoutHandlerImpl(jwtUtil, loginService);
     }
 
     @Bean
