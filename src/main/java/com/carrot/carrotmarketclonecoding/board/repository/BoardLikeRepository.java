@@ -15,4 +15,8 @@ public interface BoardLikeRepository extends JpaRepository<BoardLike, Long> {
     @Modifying
     @Query("DELETE FROM BoardLike b WHERE b.board.id = :boardId")
     void deleteAllByBoardId(Long boardId);
+
+    @Modifying
+    @Query("DELETE FROM BoardLike b WHERE b.member.id = :memberId")
+    void deleteAllByMemberId(Long memberId);
 }
