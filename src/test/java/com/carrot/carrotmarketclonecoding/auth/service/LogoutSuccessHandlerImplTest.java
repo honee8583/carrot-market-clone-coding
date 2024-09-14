@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.auth.service;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
+import com.carrot.carrotmarketclonecoding.auth.handler.LogoutSuccessHandlerImpl;
 import com.carrot.carrotmarketclonecoding.auth.util.ResponseUtil;
 import com.carrot.carrotmarketclonecoding.common.response.SuccessMessage;
 import jakarta.servlet.http.HttpServletRequest;

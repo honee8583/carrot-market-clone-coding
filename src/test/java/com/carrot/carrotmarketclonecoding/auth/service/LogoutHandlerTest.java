@@ -1,12 +1,11 @@
 package com.carrot.carrotmarketclonecoding.auth.service;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
+import com.carrot.carrotmarketclonecoding.auth.handler.LogoutHandlerImpl;
 import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +25,7 @@ class LogoutHandlerTest {
     private JwtUtil jwtUtil;
 
     @Mock
-    private RefreshTokenRedisService redisService;
+    private LoginService loginService;
 
     @Mock
     private Authentication authentication;
@@ -41,11 +40,11 @@ class LogoutHandlerTest {
     private LogoutHandlerImpl logoutHandler;
 
     @Test
-    @DisplayName("로그아웃 요청 시 리프레시 토큰 삭제 테스트")
+    @DisplayName("로그아웃 핸들러 동작 테스트")
     void logoutSuccess() {
         // given
-        String token = "token";
         Long authId = 1111L;
+        String token = "token";
         when(request.getHeader(anyString())).thenReturn(token);
         when(jwtUtil.verify(anyString())).thenReturn(new LoginUser(Member.builder().authId(authId).build()));
 
@@ -54,6 +53,6 @@ class LogoutHandlerTest {
 
         // then
         verify(jwtUtil).verify(token);
-        verify(redisService).deleteRefreshToken(authId);
+        verify(loginService).logout(authId);
     }
 }
