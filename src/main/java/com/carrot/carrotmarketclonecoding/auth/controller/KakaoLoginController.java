@@ -2,6 +2,7 @@ package com.carrot.carrotmarketclonecoding.auth.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.LOGIN_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.RECREATE_TOKENS_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.WITHDRAW_SUCCESS;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
 import com.carrot.carrotmarketclonecoding.auth.dto.TokenDto;
@@ -43,6 +44,6 @@ public class KakaoLoginController {
         loginService.withdraw(Long.parseLong(loginUser.getUsername()));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ResponseResult.success(HttpStatus.OK, "회원탈퇴에 성공하였습니다!", null));
+                .body(ResponseResult.success(HttpStatus.OK, WITHDRAW_SUCCESS.getMessage(), null));
     }
 }
