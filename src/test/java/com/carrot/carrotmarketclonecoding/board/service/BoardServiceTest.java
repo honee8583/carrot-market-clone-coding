@@ -74,7 +74,7 @@ class BoardServiceTest {
     private BoardLikeRepository boardLikeRepository;
 
     @Mock
-    private VisitService visitService;
+    private VisitRedisService visitRedisService;
 
     @Mock
     private BoardPictureService boardPictureService;
@@ -230,7 +230,7 @@ class BoardServiceTest {
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
-            when(visitService.increaseVisit(anyString(), any(), any())).thenReturn(true);
+            when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(true);
 
             // when
             BoardDetailResponseDto result = boardService.detail(boardId, request);
@@ -262,7 +262,7 @@ class BoardServiceTest {
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
-            when(visitService.increaseVisit(anyString(), any(), any())).thenReturn(false);
+            when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(false);
 
             // when
             BoardDetailResponseDto result = boardService.detail(boardId, request);

@@ -14,7 +14,7 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordRedisService;
-import com.carrot.carrotmarketclonecoding.board.service.VisitService;
+import com.carrot.carrotmarketclonecoding.board.service.VisitRedisService;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
@@ -40,7 +40,7 @@ public class BoardServiceImpl implements BoardService {
     private final CategoryRepository categoryRepository;
     private final BoardPictureRepository boardPictureRepository;
     private final BoardLikeRepository boardLikeRepository;
-    private final VisitService visitService;
+    private final VisitRedisService visitRedisService;
     private final BoardPictureService boardPictureService;
     private final SearchKeywordRedisService searchKeywordRedisService;
 
@@ -66,7 +66,7 @@ public class BoardServiceImpl implements BoardService {
         log.debug("IP: {}", ip);
         log.debug("USER-AGENT: {}", userAgent);
 
-        if (visitService.increaseVisit(board.getId().toString(), ip, userAgent)) {
+        if (visitRedisService.increaseVisit(board.getId().toString(), ip, userAgent)) {
             board.increaseVisit();
         }
 

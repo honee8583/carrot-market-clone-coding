@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class VisitService {
+public class VisitRedisService {
     private final RedisTemplate<String, String> redisTemplate;
 
     private static final String BOARD_VISIT_KEY_PREFIX = "viewed:";
