@@ -30,4 +30,4 @@ server:
 serverName: localhost
 logging:
   level:
-    com.carrot.carrotmarketclonecoding.auth: DEBUG
+    com.carrot.carrotmarketclonecoding: DEBUG
