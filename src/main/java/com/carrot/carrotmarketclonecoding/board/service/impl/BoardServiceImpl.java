@@ -22,12 +22,15 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -54,11 +57,16 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardDetailResponseDto detail(Long boardId, String sessionId) {
+    public BoardDetailResponseDto detail(Long boardId, HttpServletRequest request) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         int like = boardLikeRepository.countByBoard(board);
 
-        if (visitService.increaseVisit(board.getId().toString(), sessionId)) {
+        String ip = getClientIp(request);
+        String userAgent = getUserAgent(request);
+        log.debug("IP: {}", ip);
+        log.debug("USER-AGENT: {}", userAgent);
+
+        if (visitService.increaseVisit(board.getId().toString(), ip, userAgent)) {
             board.increaseVisit();
         }
 
@@ -141,5 +149,17 @@ public class BoardServiceImpl implements BoardService {
 
     private boolean isLogin(Long authId) {
         return authId != null && authId > 0L;
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
+
+    private String getUserAgent(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
     }
 }

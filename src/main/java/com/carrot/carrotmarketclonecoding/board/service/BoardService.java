@@ -7,12 +7,13 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearc
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Pageable;
 
 public interface BoardService {
     Long register(BoardRegisterRequestDto registerRequestDto, Long authId, boolean tmp);
 
-    BoardDetailResponseDto detail(Long boardId, String sessionId);
+    BoardDetailResponseDto detail(Long boardId, HttpServletRequest request);
 
     BoardDetailResponseDto tmpBoardDetail(Long memberId);
 
