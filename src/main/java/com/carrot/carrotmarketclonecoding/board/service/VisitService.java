@@ -10,20 +10,20 @@ import org.springframework.stereotype.Service;
 public class VisitService {
     private final RedisTemplate<String, String> redisTemplate;
 
-    private static final String BOARD_VISIT_KEY_PREFIX = "board:visit:";
+    private static final String BOARD_VISIT_KEY_PREFIX = "viewed:";
 
-    public boolean increaseVisit(String boardId, String sessionId) {
-        String sessionKey = BOARD_VISIT_KEY_PREFIX + boardId + ":session:" + sessionId;
-        Boolean viewed = redisTemplate.hasKey(sessionKey);
-        if (sessionId != null && sessionId.length() > 0) {
-            return setSessionKey(viewed, sessionKey);
+    public boolean increaseVisit(String boardId, String ip, String userAgent) {
+        String key = BOARD_VISIT_KEY_PREFIX + boardId + ":" + ip + ":" + userAgent;
+        Boolean viewed = redisTemplate.hasKey(key);
+        if (ip != null && ip.length() > 0 && userAgent != null && userAgent.length() > 0) {
+            return setVisitData(viewed, key);
         }
         return false;
     }
 
-    private boolean setSessionKey(Boolean viewed, String sessionKey) {
+    private boolean setVisitData(Boolean viewed, String key) {
         if (viewed != null && !viewed) {
-            redisTemplate.opsForValue().set(sessionKey, "1", 24, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(key, "1", 24, TimeUnit.HOURS);
             return true;
         }
         return false;
