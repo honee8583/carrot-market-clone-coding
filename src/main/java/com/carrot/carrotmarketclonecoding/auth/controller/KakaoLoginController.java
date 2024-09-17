@@ -8,7 +8,6 @@ import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
 import com.carrot.carrotmarketclonecoding.auth.dto.TokenDto;
 import com.carrot.carrotmarketclonecoding.auth.service.LoginService;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,18 +47,5 @@ public class KakaoLoginController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, WITHDRAW_SUCCESS.getMessage(), null));
-    }
-
-    @GetMapping("/test")
-    public ResponseEntity<?> test(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-
-        log.info("IP : {}", ip);
-        log.info("USER AGENT : {}", request.getHeader("User-Agent"));
-
-        return ResponseEntity.ok().build();
     }
 }

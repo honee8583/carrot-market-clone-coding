@@ -18,7 +18,7 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearch
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -61,8 +61,8 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> detail(@PathVariable("id") Long boardId, HttpSession session) {
-        BoardDetailResponseDto boardDetail = boardService.detail(boardId, session.getId());
+    public ResponseEntity<?> detail(@PathVariable("id") Long boardId, HttpServletRequest request) {
+        BoardDetailResponseDto boardDetail = boardService.detail(boardId, request);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_DETAIL_SUCCESS.getMessage(), boardDetail));

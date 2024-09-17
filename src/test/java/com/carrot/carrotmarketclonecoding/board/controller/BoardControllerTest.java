@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -253,7 +252,7 @@ class BoardControllerTest {
                     .build();
 
             // when
-            when(boardService.detail(anyLong(), anyString())).thenReturn(response);
+            when(boardService.detail(anyLong(), any())).thenReturn(response);
 
             // then
             mvc.perform(get("/board/{id}", boardId))
@@ -270,7 +269,7 @@ class BoardControllerTest {
             // given
 
             // when
-            when(boardService.detail(anyLong(), anyString())).thenThrow(new BoardNotFoundException());
+            when(boardService.detail(anyLong(), any())).thenThrow(new BoardNotFoundException());
 
             // then
             mvc.perform(get("/board/{id}", 1L))

@@ -32,6 +32,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -73,13 +74,16 @@ class BoardServiceTest {
     private BoardLikeRepository boardLikeRepository;
 
     @Mock
-    private VisitService visitService;
+    private VisitRedisService visitRedisService;
 
     @Mock
     private BoardPictureService boardPictureService;
 
     @Mock
     private SearchKeywordRedisService searchKeywordRedisService;
+
+    @Mock
+    private HttpServletRequest request;
 
     @Nested
     @DisplayName(BOARD_REGISTER_SERVICE_TEST)
@@ -219,7 +223,6 @@ class BoardServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
-            String sessionId = "session:" + memberId;
             List<BoardPicture> mockPictures = Arrays.asList(
                     BoardPicture.builder().id(1L).build(),
                     BoardPicture.builder().id(2L).build());
@@ -227,10 +230,10 @@ class BoardServiceTest {
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
-            when(visitService.increaseVisit(anyString(), anyString())).thenReturn(true);
+            when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(true);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, sessionId);
+            BoardDetailResponseDto result = boardService.detail(boardId, request);
 
             // then
             assertThat(result.getId()).isEqualTo(boardId);
@@ -259,10 +262,10 @@ class BoardServiceTest {
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
-            when(visitService.increaseVisit(anyString(), anyString())).thenReturn(false);
+            when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(false);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, "sessionId:" + memberId);
+            BoardDetailResponseDto result = boardService.detail(boardId, request);
 
             // then
             assertThat(result.getVisit()).isEqualTo(10);
@@ -278,7 +281,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.detail(boardId, "sessionId:" + memberId))
+            assertThatThrownBy(() -> boardService.detail(boardId, request))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
