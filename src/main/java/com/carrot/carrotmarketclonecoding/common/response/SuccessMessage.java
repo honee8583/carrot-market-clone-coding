@@ -29,7 +29,9 @@ public enum SuccessMessage {
     LOGIN_SUCCESS("로그인에 성공하였습니다!"),
     RECREATE_TOKENS_SUCCESS("토큰 재발급에 성공하였습니다!"),
     LOGOUT_SUCCESS("로그아웃에 성공하였습니다!"),
-    WITHDRAW_SUCCESS("회원탈퇴에 성공하였습니다!");
+    WITHDRAW_SUCCESS("회원탈퇴에 성공하였습니다!"),
+
+    PROFILE_UPDATE_SUCCESS("프로필 수정에 성공하였습니다!");
 
     private final String message;
 }
