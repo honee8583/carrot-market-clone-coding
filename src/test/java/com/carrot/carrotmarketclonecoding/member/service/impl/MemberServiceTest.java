@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

@@ -3,7 +3,7 @@ package com.carrot.carrotmarketclonecoding.member.dto;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-public class ProfileRequestDto {
+public class ProfileDto {
 
     @Getter
     @Setter

@@ -3,7 +3,7 @@ package com.carrot.carrotmarketclonecoding.member.service.impl;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.file.service.FileService;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.member.service.MemberService;
 import lombok.RequiredArgsConstructor;

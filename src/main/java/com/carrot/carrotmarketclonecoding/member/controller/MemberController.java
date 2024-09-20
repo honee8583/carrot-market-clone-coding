@@ -4,7 +4,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
-import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
