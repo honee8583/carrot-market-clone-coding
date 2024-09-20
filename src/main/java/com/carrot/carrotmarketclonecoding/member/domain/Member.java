@@ -2,7 +2,6 @@ package com.carrot.carrotmarketclonecoding.member.domain;
 
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.enums.Role;
-import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

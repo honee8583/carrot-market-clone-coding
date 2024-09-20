@@ -13,7 +13,8 @@ import static org.mockito.Mockito.when;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.file.service.impl.FileServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,43 @@ class MemberServiceTest {
             // when
             // then
             assertThatThrownBy(() -> memberService.update(1111L, new ProfileUpdateRequestDto()))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("프로필 정보 조회 테스트")
+    class ProfileDetail {
+
+        @Test
+        @DisplayName("성공")
+        void profileDetailSuccess() {
+            // given
+            Member mockMember = Member.builder()
+                    .authId(1111L)
+                    .nickname("testNickname")
+                    .profileUrl("testProfileUrl")
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+
+            // when
+            ProfileDetailResponseDto profileDetail = memberService.detail(1111L);
+
+            // then
+            assertThat(profileDetail.getProfileUrl()).isEqualTo("testProfileUrl");
+            assertThat(profileDetail.getNickname()).isEqualTo("testNickname");
+        }
+
+        @Test
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void profileDetailFailMemberNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> memberService.detail(1111L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
