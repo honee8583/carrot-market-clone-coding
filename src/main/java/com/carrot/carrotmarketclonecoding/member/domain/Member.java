@@ -2,6 +2,7 @@ package com.carrot.carrotmarketclonecoding.member.domain;
 
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.enums.Role;
+import com.carrot.carrotmarketclonecoding.member.dto.ProfileRequestDto.ProfileUpdateRequestDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,4 +32,13 @@ public class Member extends BaseEntity {
     private Role role;
 
     private Long authId;
+
+    public void updateProfile(String nickname, String profileUrl) {
+        if (nickname != null && nickname.length() > 0) {
+            this.nickname = nickname;
+        }
+        if (profileUrl != null && profileUrl.length() > 0) {
+            this.profileUrl = profileUrl;
+        }
+    }
 }
