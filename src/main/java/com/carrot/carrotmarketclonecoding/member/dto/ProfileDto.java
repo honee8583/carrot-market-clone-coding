@@ -15,4 +15,15 @@ public class ProfileDto {
         private MultipartFile profileImage;
         private String nickname;
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProfileDetailResponseDto {
+        private String profileUrl;
+        private String nickname;
+    }
 }
