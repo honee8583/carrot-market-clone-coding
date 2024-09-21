@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.board.domain;
+package com.carrot.carrotmarketclonecoding.category.domain;
 
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import jakarta.persistence.Entity;

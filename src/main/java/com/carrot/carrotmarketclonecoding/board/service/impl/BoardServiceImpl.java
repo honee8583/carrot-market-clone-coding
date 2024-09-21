@@ -1,7 +1,7 @@
 package com.carrot.carrotmarketclonecoding.board.service.impl;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
-import com.carrot.carrotmarketclonecoding.board.domain.Category;
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;

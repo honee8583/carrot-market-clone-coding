@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
-import com.carrot.carrotmarketclonecoding.board.domain.Category;
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;

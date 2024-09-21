@@ -4,6 +4,7 @@ import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import jakarta.persistence.Entity;
