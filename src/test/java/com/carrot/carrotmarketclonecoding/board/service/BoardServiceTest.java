@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
-import com.carrot.carrotmarketclonecoding.board.domain.Category;
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
@@ -21,7 +21,7 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearch
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
-import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
