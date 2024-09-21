@@ -11,7 +11,7 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearch
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
-import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.BoardService;
 import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordRedisService;
 import com.carrot.carrotmarketclonecoding.board.service.VisitRedisService;

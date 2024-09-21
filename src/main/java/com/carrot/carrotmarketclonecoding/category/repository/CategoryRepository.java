@@ -1,4 +1,4 @@
-package com.carrot.carrotmarketclonecoding.board.repository;
+package com.carrot.carrotmarketclonecoding.category.repository;
 
 import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

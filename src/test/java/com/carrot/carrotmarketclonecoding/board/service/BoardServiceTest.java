@@ -21,7 +21,7 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearch
 import com.carrot.carrotmarketclonecoding.board.repository.BoardLikeRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardPictureRepository;
 import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
-import com.carrot.carrotmarketclonecoding.board.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
