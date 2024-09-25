@@ -12,6 +12,8 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import com.carrot.carrotmarketclonecoding.notification.domain.enums.NotificationType;
+import com.carrot.carrotmarketclonecoding.notification.service.NotificationService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ public class BoardLikeServiceImpl implements BoardLikeService {
     private final BoardLikeRepository boardLikeRepository;
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     @Override
     public void add(Long boardId, Long authId) {
@@ -40,6 +43,11 @@ public class BoardLikeServiceImpl implements BoardLikeService {
                 .board(board)
                 .member(member)
                 .build());
+
+        Long targetAuthId = board.getMember().getAuthId();
+        String targetNickname = board.getMember().getNickname();
+        String content = String.format("%s님이 %s님의 게시글을 좋아하였습니다!", member.getNickname(), targetNickname);
+        notificationService.add(targetAuthId, NotificationType.LIKE, content);
     }
 
     @Override

@@ -6,6 +6,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: validate
+    open-in-view: false
 
   flyway:
     enabled: true
@@ -16,6 +17,9 @@ encryptor:
 
 server:
   env: blue
+
+sse:
+  timeout: 1800000
 
 s3:
   board:

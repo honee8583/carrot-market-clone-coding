@@ -20,6 +20,9 @@ spring:
 encryptor:
   key: ${JASYPT_KEY}
 
+sse:
+  timeout: 1800000
+
 s3:
   board:
     bucket: ENC(DYBumT/r/jJNVv0aIdXL0suri5bX5EeMZse+xuS5mfI=)
