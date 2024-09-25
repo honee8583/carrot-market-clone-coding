@@ -29,6 +29,8 @@ public class BoardLikeServiceImpl implements BoardLikeService {
     private final MemberRepository memberRepository;
     private final NotificationService notificationService;
 
+    private static final String SSE_LIKE_CONTENT = "%s님이 %s님의 게시글을 좋아하였습니다!";
+
     @Override
     public void add(Long boardId, Long authId) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
@@ -46,7 +48,7 @@ public class BoardLikeServiceImpl implements BoardLikeService {
 
         Long targetAuthId = board.getMember().getAuthId();
         String targetNickname = board.getMember().getNickname();
-        String content = String.format("%s님이 %s님의 게시글을 좋아하였습니다!", member.getNickname(), targetNickname);
+        String content = String.format(SSE_LIKE_CONTENT, member.getNickname(), targetNickname);
         notificationService.add(targetAuthId, NotificationType.LIKE, content);
     }
 
