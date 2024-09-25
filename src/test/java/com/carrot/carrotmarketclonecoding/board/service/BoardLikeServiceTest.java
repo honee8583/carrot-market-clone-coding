@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,6 +21,8 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import com.carrot.carrotmarketclonecoding.notification.domain.enums.NotificationType;
+import com.carrot.carrotmarketclonecoding.notification.service.impl.NotificationServiceImpl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +50,9 @@ class BoardLikeServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
+    @Mock
+    private NotificationServiceImpl notificationService;
+
     @InjectMocks
     private BoardLikeServiceImpl boardLikeService;
 
@@ -60,8 +66,21 @@ class BoardLikeServiceTest {
             // given
             Long boardId = 1L;
             Long memberId = 1L;
-            Board mockBoard = mock(Board.class);
-            Member mockMember = mock(Member.class);
+            Long targetId = 2L;
+            Board mockBoard = Board.builder()
+                    .id(1L)
+                    .member(Member.builder()
+                            .id(2L)
+                            .authId(targetId)
+                            .nickname("target")
+                            .build())
+                    .build();
+            Member mockMember = Member.builder()
+                    .id(1L)
+                    .authId(memberId)
+                    .nickname("member")
+                    .build();
+            String content = String.format("%s님이 %s님의 게시글을 좋아하였습니다!", mockMember.getNickname(), mockBoard.getMember().getNickname());
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
@@ -73,8 +92,9 @@ class BoardLikeServiceTest {
             ArgumentCaptor<BoardLike> argumentCaptor = ArgumentCaptor.forClass(BoardLike.class);
             verify(boardLikeRepository).save(argumentCaptor.capture());
             BoardLike boardLike = argumentCaptor.getValue();
-            assertThat(boardLike.getBoard()).isEqualTo(mockBoard);
-            assertThat(boardLike.getMember()).isEqualTo(mockMember);
+            assertThat(boardLike.getBoard().getId()).isEqualTo(1L);
+            assertThat(boardLike.getMember().getId()).isEqualTo(1L);
+            verify(notificationService, times(1)).add(targetId, NotificationType.LIKE, content);
         }
 
         @Test
