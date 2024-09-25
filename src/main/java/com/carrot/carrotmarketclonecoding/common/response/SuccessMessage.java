@@ -34,7 +34,9 @@ public enum SuccessMessage {
     PROFILE_UPDATE_SUCCESS("프로필 수정에 성공하였습니다!"),
     PROFILE_DETAIL_SUCCESS("프로필 정보 조회에 성공하였습니다!"),
 
-    GET_CATEGORIES_SUCCESS("카테고리 전체 목록 조회에 성공하였습니다!");
+    GET_CATEGORIES_SUCCESS("카테고리 전체 목록 조회에 성공하였습니다!"),
+
+    GET_ALL_NOTIFICATIONS_SUCCESS("이전 알림 조회에 성공하였습니다!");
 
     private final String message;
 }
