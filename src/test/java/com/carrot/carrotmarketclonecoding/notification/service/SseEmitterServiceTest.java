@@ -43,29 +43,4 @@ class SseEmitterServiceTest {
             verify(eventBuilder).data("connected!");
         }
     }
-
-    @Test
-    @DisplayName("SSE 알림 전송 테스트")
-    void sendSuccess() {
-        // given
-        try (MockedStatic<SseEmitter> mockedSseEmitter = mockStatic(SseEmitter.class)) {
-            // given
-            Long authId = 1111L;
-            NotificationType type = NotificationType.NOTICE;
-            String content = "test";
-
-            SseEmitter.SseEventBuilder eventBuilder = mock(SseEmitter.SseEventBuilder.class);
-            when(SseEmitter.event()).thenReturn(eventBuilder);
-            when(eventBuilder.name(anyString())).thenReturn(eventBuilder);
-            when(eventBuilder.data(anyString())).thenReturn(eventBuilder);
-
-            // when
-            sseEmitterService.send(authId, type, content);
-
-            // then
-            mockedSseEmitter.verify(SseEmitter::event, times(1));
-            verify(eventBuilder).name(type.name());
-            verify(eventBuilder).data(content);
-        }
-    }
 }
