@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
-@Component
+@Service
 public class SseEmitterService {
 
     @Value("${sse.timeout}")
@@ -25,7 +25,7 @@ public class SseEmitterService {
         log.debug("Sending Dummy Data...");
         send(authId, NotificationType.NOTICE, "connected!");
 
-        log.debug("new member emitter added : {} : {}, size: {}", authId, emitter, emitters.size());
+        log.debug("SSE EMITTER -> authID: {}, emitter: {}, size: {}", authId, emitter, emitters.size());
 
         emitter.onCompletion(() -> {
             log.debug("SseEmitter onCompletion callback");
@@ -38,7 +38,7 @@ public class SseEmitterService {
         });
 
         emitter.onError(throwable -> {
-            log.debug("error");
+            log.debug("SseEmitter Error occurred!");
             emitter.complete();
         });
 
