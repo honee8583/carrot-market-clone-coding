@@ -7,6 +7,7 @@ import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import com.carrot.carrotmarketclonecoding.notification.dto.NotificationResponseDto;
 import com.carrot.carrotmarketclonecoding.notification.service.SseEmitterService;
 import com.carrot.carrotmarketclonecoding.notification.service.impl.NotificationServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,9 @@ public class NotificationController {
     private final SseEmitterService sseEmitterService;
     private final NotificationServiceImpl notificationService;
 
+    private static final String X_ACCEL_BUFFERING = "X-Accel-Buffering";
+    private static final String X_ACCEL_BUFFERING_VALUE = "no";
+
     @GetMapping("/notification")
     public ResponseEntity<?> getAllNotifications(@AuthenticationPrincipal LoginUser loginUser) {
         List<NotificationResponseDto> notifications =
@@ -33,7 +37,9 @@ public class NotificationController {
     }
 
     @GetMapping(value = "/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(@AuthenticationPrincipal LoginUser loginUser) {
+    public ResponseEntity<SseEmitter> connect(@AuthenticationPrincipal LoginUser loginUser, HttpServletResponse response) {
+        response.setHeader(X_ACCEL_BUFFERING, X_ACCEL_BUFFERING_VALUE);
+
         Long id = Long.parseLong(loginUser.getUsername());
         return ResponseEntity.ok(sseEmitterService.add(id));
     }
