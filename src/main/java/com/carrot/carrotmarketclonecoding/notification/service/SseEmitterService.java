@@ -46,7 +46,9 @@ public class SseEmitterService {
     }
 
     public void send(Long id, NotificationType type, String content) {
+        log.debug("Map에 저장되어 있는가? {}", emitters.containsKey(id));
         SseEmitter emitter = emitters.get(id);
+        log.debug("저장되어 있는 emitter 정보 : {}", emitter.toString());
         try {
             log.debug("알림을 전송합니다!");
             emitter.send(SseEmitter.event()
