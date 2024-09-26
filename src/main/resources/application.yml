@@ -35,3 +35,7 @@ jwt:
   secret: ENC(AZSMHtQVuCDzJNRt1ln9wKpeKm13cB6U9zIp23MOjjyBNIOqa+X7lMeAo8ki+bmW)
   expiration_time: ENC(Lo7/s4mCESUiz0GI8/WYGA==)
   refresh_expiration_time: ENC(k/35hOfhQC6TeZV6bs7KwhQo3I844ujZ)
+
+logging:
+  level:
+    com.carrot.carrotmarketclonecoding: DEBUG

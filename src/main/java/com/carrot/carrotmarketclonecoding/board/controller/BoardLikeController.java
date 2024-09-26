@@ -9,6 +9,7 @@ import com.carrot.carrotmarketclonecoding.board.service.BoardLikeService;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/board/like")
 @RequiredArgsConstructor
@@ -29,6 +31,10 @@ public class BoardLikeController {
     @PostMapping("/{id}")
     public ResponseEntity<?> addBoardLike(@AuthenticationPrincipal LoginUser loginUser, @PathVariable("id") Long boardId) {
         Long authId = Long.parseLong(loginUser.getUsername());
+
+        log.debug("boardId: {}", boardId);
+        log.debug("authID: {}", authId);
+
         boardLikeService.add(boardId, authId);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
