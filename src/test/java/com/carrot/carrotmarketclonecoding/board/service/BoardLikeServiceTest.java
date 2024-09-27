@@ -80,7 +80,7 @@ class BoardLikeServiceTest {
                     .authId(memberId)
                     .nickname("member")
                     .build();
-            String content = String.format("%s님이 %s님의 게시글을 좋아하였습니다!", mockMember.getNickname(), mockBoard.getMember().getNickname());
+            String content = String.format("%s님이 %s님의 %d번 게시글을 좋아하였습니다!", mockMember.getNickname(), mockBoard.getMember().getNickname(), mockBoard.getId());
 
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));

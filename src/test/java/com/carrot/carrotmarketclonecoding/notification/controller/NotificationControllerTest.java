@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.notification.controller;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_ALL_NOTIFICATIONS_SUCCESS;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,7 +42,7 @@ class NotificationControllerTest {
     void connectSuccess() throws Exception {
         // given
         // when
-        when(sseEmitterService.add(anyLong())).thenReturn(mock(SseEmitter.class));
+        when(sseEmitterService.subscribe(anyLong(), anyString())).thenReturn(mock(SseEmitter.class));
 
         // then
         mvc.perform(get("/connect"))
