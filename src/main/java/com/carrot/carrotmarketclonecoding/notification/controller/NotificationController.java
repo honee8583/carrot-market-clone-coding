@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -37,11 +38,12 @@ public class NotificationController {
     }
 
     @GetMapping(value = "/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(@AuthenticationPrincipal LoginUser loginUser, HttpServletResponse response) {
+    public ResponseEntity<SseEmitter> connect(@AuthenticationPrincipal LoginUser loginUser,
+                                              HttpServletResponse response,
+                                              @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         response.setHeader(X_ACCEL_BUFFERING, X_ACCEL_BUFFERING_VALUE);
-
         Long id = Long.parseLong(loginUser.getUsername());
-        return ResponseEntity.ok(sseEmitterService.add(id));
+        return ResponseEntity.ok(sseEmitterService.subscribe(id, lastEventId));
     }
 
     // TODO 읽음처리
