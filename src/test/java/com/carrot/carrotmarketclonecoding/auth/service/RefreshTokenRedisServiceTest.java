@@ -2,22 +2,18 @@ package com.carrot.carrotmarketclonecoding.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.carrot.carrotmarketclonecoding.RedisContainerConfig;
+import com.carrot.carrotmarketclonecoding.RedisTestContainerTest;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@DataRedisTest
-@ExtendWith(RedisContainerConfig.class)
-class RefreshTokenRedisServiceTest {
+@SpringBootTest
+class RefreshTokenRedisServiceTest extends RedisTestContainerTest {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;

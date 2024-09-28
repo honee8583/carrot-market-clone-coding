@@ -2,24 +2,20 @@ package com.carrot.carrotmarketclonecoding.board.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.carrot.carrotmarketclonecoding.RedisContainerConfig;
+import com.carrot.carrotmarketclonecoding.RedisTestContainerTest;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@DataRedisTest
-@ExtendWith(RedisContainerConfig.class)
-class SearchKeywordRedisServiceTest {
+@SpringBootTest
+class SearchKeywordRedisServiceTest extends RedisTestContainerTest {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -29,7 +25,7 @@ class SearchKeywordRedisServiceTest {
     private static final int MAX_RECENT_SEARCHES = 20;
 
     @AfterEach
-    void rollBack() {
+    void tearDown() {
         Set<String> keys = redisTemplate.keys("*");
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
