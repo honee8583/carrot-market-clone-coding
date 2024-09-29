@@ -1,10 +1,11 @@
 package com.carrot.carrotmarketclonecoding.notification.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,26 +47,34 @@ class NotificationServiceTest {
     void addNotificationSuccess() {
         // given
         Long authId = 1111L;
-        Member mockMember = Member.builder()
-                .id(1L)
-                .authId(authId)
-                .build();
         String content = "test";
+        NotificationType type = NotificationType.LIKE;
 
-        when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+        Member member = Member.builder().id(1L).authId(authId).build();
+        when(memberRepository.findByAuthId(authId)).thenReturn(Optional.of(member));
+
+        Notification notification = Notification.builder()
+                .member(member)
+                .content(content)
+                .type(type)
+                .isRead(false)
+                .build();
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
 
         // when
-        notificationService.add(authId, NotificationType.LIKE, content);
+        notificationService.add(authId, type, content);
 
         // then
-        ArgumentCaptor<Notification> argumentCaptor = ArgumentCaptor.forClass(Notification.class);
-        verify(notificationRepository).save(argumentCaptor.capture());
-        Notification notification = argumentCaptor.getValue();
-        assertThat(notification.getType()).isEqualTo(NotificationType.LIKE);
-        assertThat(notification.getContent()).isEqualTo(content);
-        assertThat(notification.getMember().getId()).isEqualTo(1L);
-        assertThat(notification.isRead()).isEqualTo(false);
-        verify(sseEmitterService, times(1)).send(authId, NotificationType.LIKE, content);
+        verify(memberRepository).findByAuthId(authId);
+        verify(notificationRepository).save(any(Notification.class));
+
+        ArgumentCaptor<NotificationResponseDto> captor = forClass(NotificationResponseDto.class);
+        verify(sseEmitterService).send(eq(authId), eq(NotificationType.LIKE), captor.capture());
+
+        NotificationResponseDto capturedNotification = captor.getValue();
+        assertThat(content).isEqualTo(capturedNotification.getContent());
+        assertThat(type).isEqualTo(capturedNotification.getType());
+        assertThat(capturedNotification.getIsRead()).isEqualTo(false);
     }
 
     @Test
