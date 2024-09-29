@@ -7,5 +7,7 @@ import java.util.List;
 public interface NotificationService {
     void add(Long authId, NotificationType type, String content);
 
-    public List<NotificationResponseDto> getAllNotifications(Long authId);
+    List<NotificationResponseDto> getAllNotifications(Long authId);
+
+    void read(Long authId, Long id);
 }
