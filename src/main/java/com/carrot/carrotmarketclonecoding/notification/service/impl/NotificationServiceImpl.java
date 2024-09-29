@@ -32,7 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .isRead(false)
                 .build();
         notificationRepository.save(notification);
-        sseEmitterService.send(authId, NotificationType.LIKE, content);
+        sseEmitterService.send(authId, NotificationType.LIKE, NotificationResponseDto.createNotificationResponseDto(notification));
     }
 
     @Override
