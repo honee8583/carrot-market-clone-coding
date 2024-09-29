@@ -36,7 +36,8 @@ public enum SuccessMessage {
 
     GET_CATEGORIES_SUCCESS("카테고리 전체 목록 조회에 성공하였습니다!"),
 
-    GET_ALL_NOTIFICATIONS_SUCCESS("이전 알림 조회에 성공하였습니다!");
+    GET_ALL_NOTIFICATIONS_SUCCESS("이전 알림 조회에 성공하였습니다!"),
+    READ_NOTIFICATION_SUCCESS("알림 읽음처리에 성공하였습니다!");
 
     private final String message;
 }

@@ -27,7 +27,10 @@ public enum FailedMessage {
     TOKEN_NOT_EXISTS("토큰이 존재하지 않습니다!"),
     KAKAO_TOKEN_NOT_EXISTS("카카오로부터 받아온 토큰이 존재하지 않습니다!"),
     KAKAO_USER_INFO_NOT_EXISTS("카카오로부터 받아온 사용자 정보가 존재하지 않습니다!"),
-    REFRESH_TOKEN_NOT_MATCH("리프레시 토큰이 일치하지 않습니다!");
+    REFRESH_TOKEN_NOT_MATCH("리프레시 토큰이 일치하지 않습니다!"),
+
+    NOTIFICATION_NOT_EXISTS("존재하지 않는 알림입니다!"),
+    ALREADY_READ_NOTIFICATION("이미 읽은 알림입니다!");
 
     private final String message;
 }

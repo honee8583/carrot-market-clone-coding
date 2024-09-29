@@ -1,6 +1,9 @@
 package com.carrot.carrotmarketclonecoding.notification.service.impl;
 
+import com.carrot.carrotmarketclonecoding.common.exception.AlreadyReadNotificationException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.NotificationNotExistsException;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import com.carrot.carrotmarketclonecoding.notification.domain.Notification;
@@ -41,5 +44,26 @@ public class NotificationServiceImpl implements NotificationService {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         List<Notification> notifications = notificationRepository.findAllByMember(member);
         return notifications.stream().map(NotificationResponseDto::createNotificationResponseDto).toList();
+    }
+
+    @Override
+    public void read(Long authId, Long id) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+        Notification notification = notificationRepository.findById(id).orElseThrow(NotificationNotExistsException::new);
+        isNotificationAlreadyRead(notification);
+        isMemberOfNotification(notification, member);
+        notification.readNotification();
+    }
+
+    private void isNotificationAlreadyRead(Notification notification) {
+        if (notification.isRead()) {
+            throw new AlreadyReadNotificationException();
+        }
+    }
+
+    private void isMemberOfNotification(Notification notification, Member member) {
+        if (notification.getMember() != member) {
+            throw new UnauthorizedAccessException();
+        }
     }
 }
