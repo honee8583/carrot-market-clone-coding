@@ -35,4 +35,8 @@ public class Notification extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private NotificationType type;
+
+    public void readNotification() {
+        this.isRead = true;
+    }
 }
