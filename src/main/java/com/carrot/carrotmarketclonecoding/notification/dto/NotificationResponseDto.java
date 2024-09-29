@@ -15,6 +15,7 @@ public class NotificationResponseDto {
     private Long id;
     private String content;
     private NotificationType type;
+    private Boolean isRead;
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
 
@@ -23,6 +24,7 @@ public class NotificationResponseDto {
                 .id(notification.getId())
                 .content(notification.getContent())
                 .type(notification.getType())
+                .isRead(notification.isRead())
                 .createDate(notification.getCreateDate())
                 .updateDate(notification.getUpdateDate())
                 .build();
