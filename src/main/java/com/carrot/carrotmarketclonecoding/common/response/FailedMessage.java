@@ -30,7 +30,9 @@ public enum FailedMessage {
     REFRESH_TOKEN_NOT_MATCH("리프레시 토큰이 일치하지 않습니다!"),
 
     NOTIFICATION_NOT_EXISTS("존재하지 않는 알림입니다!"),
-    ALREADY_READ_NOTIFICATION("이미 읽은 알림입니다!");
+    ALREADY_READ_NOTIFICATION("이미 읽은 알림입니다!"),
+
+    KEYWORD_OVER_LIMIT("키워드개수는 30개까지만 저장할 수 있습니다!");
 
     private final String message;
 }
