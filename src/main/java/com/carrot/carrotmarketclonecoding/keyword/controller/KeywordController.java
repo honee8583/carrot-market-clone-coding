@@ -1,15 +1,19 @@
 package com.carrot.carrotmarketclonecoding.keyword.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_KEYWORD_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.EDIT_KEYWORD_SUCCESS;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
 import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.service.KeywordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +31,15 @@ public class KeywordController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, ADD_KEYWORD_SUCCESS.getMessage(), null));
+    }
+
+    @PatchMapping("/keyword/{id}")
+    public ResponseEntity<?> edit(@AuthenticationPrincipal LoginUser loginUser,
+                                  @PathVariable("id") Long keywordId,
+                                  @RequestBody KeywordEditRequestDto editRequestDto) {
+        keywordService.edit(Long.parseLong(loginUser.getUsername()), keywordId, editRequestDto);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, EDIT_KEYWORD_SUCCESS.getMessage(), null));
     }
 }
