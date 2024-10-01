@@ -50,4 +50,11 @@ public class Keyword extends BaseEntity {
         this.minPrice = editRequestDto.getMinPrice();
         this.maxPrice = editRequestDto.getMaxPrice();
     }
+
+    public Long getCategoryId() {
+        if (this.category != null) {
+            return this.category.getId();
+        }
+        return null;
+    }
 }

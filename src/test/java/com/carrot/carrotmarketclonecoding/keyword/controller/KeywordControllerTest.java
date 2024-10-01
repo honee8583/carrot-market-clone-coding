@@ -7,12 +7,15 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.M
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.UNAUTHORIZED_ACCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_KEYWORD_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.EDIT_KEYWORD_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_KEYWORDS_SUCCESS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,7 +29,10 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto.KeywordDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.service.impl.KeywordServiceImpl;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -110,20 +116,46 @@ class KeywordControllerTest {
         }
     }
 
-    @Test
-    @DisplayName("사용자의 키워드 목록 조회 성공 컨트롤러 테스트")
-    void getKeywordsSuccess() {
-        // given
-        // when
-        // then
-    }
+    @Nested
+    @DisplayName("사용자의 키워드 목록 조회 컨트롤러 테스트")
+    class GetKeywords {
 
-    @Test
-    @DisplayName("존재하지 않는 사용자일 경우 403 반환")
-    void getKeywordsFailMemberNotFound() {
-        // given
-        // when
-        // then
+        @Test
+        @DisplayName("성공")
+        void getKeywordsSuccess() throws Exception {
+            // given
+            List<KeywordDetailResponseDto> keywords = Arrays.asList(
+                    new KeywordDetailResponseDto(),
+                    new KeywordDetailResponseDto()
+            );
+
+            // when
+            when(keywordService.getAllKeywords(anyLong())).thenReturn(keywords);
+
+            // then
+            mvc.perform(get("/keyword"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(GET_KEYWORDS_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data.size()", equalTo(2)));
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 사용자일 경우 401 반환")
+        void getKeywordsFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(keywordService).getAllKeywords(anyLong());
+
+            // then
+            mvc.perform(get("/keyword"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
     }
 
     @Nested

@@ -2,7 +2,7 @@ package com.carrot.carrotmarketclonecoding.keyword.service;
 
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
-import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto.KeywordDetailResponseDto;
 import java.util.List;
 
 public interface KeywordService {
@@ -11,7 +11,7 @@ public interface KeywordService {
 
     void edit(Long authId, Long keywordId, KeywordEditRequestDto keywordEditRequestDto);
 
-    List<KeywordResponseDto> getAllKeywords(Long authId);
+    List<KeywordDetailResponseDto> getAllKeywords(Long authId);
 
     void delete(Long authId, Long keywordId);
 }

@@ -24,10 +24,13 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto.KeywordDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.repository.KeywordRepository;
 import com.carrot.carrotmarketclonecoding.keyword.service.impl.KeywordServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -105,20 +108,51 @@ class KeywordServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("사용자의 키워드 리스트 조회 서비스 성공 테스트")
-    void getKeywordsSuccess() {
-        // given
-        // when
-        // then
-    }
+    @Nested
+    @DisplayName("사용자의 키워드 목록 조회 서비스 테스트")
+    class GetKeywords {
 
-    @Test
-    @DisplayName("사용자의 키워드 리스트 조회 서비스 실패 테스트 - 사용자가 존재하지 않을 경우 예외 발생")
-    void getKeywordsFailMemberNotFound() {
-        // given
-        // when
-        // then
+        @Test
+        @DisplayName("성공")
+        void getKeywordsSuccess() {
+            // given
+            Member mockMember = Member.builder()
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+
+            Category mockCategory = Category.builder()
+                    .id(1L)
+                    .build();
+            List<Keyword> keywords = Arrays.asList(
+                    Keyword.builder()
+                            .category(mockCategory)
+                            .build(),
+                    Keyword.builder()
+                            .category(mockCategory)
+                            .build()
+            );
+            when(keywordRepository.findAllByMember(any(Member.class))).thenReturn(keywords);
+
+            // when
+            List<KeywordDetailResponseDto> result = keywordService.getAllKeywords(AUTH_ID);
+
+            // then
+            assertThat(result.size()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않을 경우 예외 발생")
+        void getKeywordsFailMemberNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.getAllKeywords(AUTH_ID))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
     }
 
     @Nested
