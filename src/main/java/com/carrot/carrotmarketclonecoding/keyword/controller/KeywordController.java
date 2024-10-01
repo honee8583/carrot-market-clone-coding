@@ -1,6 +1,7 @@
 package com.carrot.carrotmarketclonecoding.keyword.controller;
 
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_KEYWORD_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.DELETE_KEYWORDS_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.EDIT_KEYWORD_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_KEYWORDS_SUCCESS;
 
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,5 +56,14 @@ public class KeywordController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, GET_KEYWORDS_SUCCESS.getMessage(), keywords));
+    }
+
+    @DeleteMapping("/keyword/{id}")
+    public ResponseEntity<?> delete(@AuthenticationPrincipal LoginUser loginUser,
+                                    @PathVariable("id") Long keywordId) {
+        keywordService.delete(Long.parseLong(loginUser.getUsername()), keywordId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ResponseResult.success(HttpStatus.OK, DELETE_KEYWORDS_SUCCESS.getMessage(), null));
     }
 }
