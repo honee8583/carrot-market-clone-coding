@@ -10,7 +10,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessExc
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
-import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto.KeywordDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.repository.KeywordRepository;
 import com.carrot.carrotmarketclonecoding.keyword.service.KeywordService;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
@@ -53,8 +53,11 @@ public class KeywordServiceImpl implements KeywordService {
     }
 
     @Override
-    public List<KeywordResponseDto> getAllKeywords(Long authId) {
-        return null;
+    @Transactional(readOnly = true)
+    public List<KeywordDetailResponseDto> getAllKeywords(Long authId) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+        List<Keyword> keywords = keywordRepository.findAllByMember(member);
+        return keywords.stream().map(KeywordDetailResponseDto::createDetail).toList();
     }
 
     @Override
