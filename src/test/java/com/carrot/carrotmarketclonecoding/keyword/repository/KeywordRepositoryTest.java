@@ -6,6 +6,7 @@ import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +43,23 @@ class KeywordRepositoryTest {
     }
 
     @Test
-    @DisplayName("쿼리메서드 findAlByMember() 테스트")
+    @DisplayName("쿼리메서드 findAllByMember() 테스트")
     void findAllByMember() {
         // given
+        Member mockMember = Member.builder()
+                .authId(1111L)
+                .build();
+        memberRepository.save(mockMember);
+
+        keywordRepository.saveAll(Arrays.asList(
+                Keyword.builder().member(mockMember).build(),
+                Keyword.builder().member(mockMember).build()
+        ));
+
         // when
+        List<Keyword> keywords = keywordRepository.findAllByMember(mockMember);
+
         // then
+        assertThat(keywords.size()).isEqualTo(2);
     }
 }
