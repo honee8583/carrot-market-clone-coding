@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.keyword.domain;
 import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -41,5 +42,12 @@ public class Keyword extends BaseEntity {
                 .member(member)
                 .name(createRequestDto.getName())
                 .build();
+    }
+
+    public void modify(Category category, KeywordEditRequestDto editRequestDto) {
+        this.category = category;
+        this.name = editRequestDto.getName();
+        this.minPrice = editRequestDto.getMinPrice();
+        this.maxPrice = editRequestDto.getMaxPrice();
     }
 }

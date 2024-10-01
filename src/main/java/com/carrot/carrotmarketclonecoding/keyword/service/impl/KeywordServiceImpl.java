@@ -1,7 +1,12 @@
 package com.carrot.carrotmarketclonecoding.keyword.service.impl;
 
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
+import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.KeywordNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.KeywordOverLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
@@ -21,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class KeywordServiceImpl implements KeywordService {
     private final KeywordRepository keywordRepository;
     private final MemberRepository memberRepository;
+    private final CategoryRepository categoryRepository;
 
     private static final int KEYWORD_LIMIT = 30;
 
@@ -33,7 +39,17 @@ public class KeywordServiceImpl implements KeywordService {
 
     @Override
     public void edit(Long authId, Long keywordId, KeywordEditRequestDto keywordEditRequestDto) {
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+        Keyword keyword = keywordRepository.findById(keywordId).orElseThrow(KeywordNotFoundException::new);
+        isMemberOfKeyword(keyword, member);
 
+        Category category = null;
+        Long categoryId = keywordEditRequestDto.getCategoryId();
+        if (isCategoryIdExists(categoryId)) {
+            category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+        }
+
+        keyword.modify(category, keywordEditRequestDto);
     }
 
     @Override
@@ -50,5 +66,18 @@ public class KeywordServiceImpl implements KeywordService {
         if (count > KEYWORD_LIMIT) {
             throw new KeywordOverLimitException();
         }
+    }
+
+    private void isMemberOfKeyword(Keyword keyword, Member member) {
+        if (keyword.getMember() != member) {
+            throw new UnauthorizedAccessException();
+        }
+    }
+
+    private boolean isCategoryIdExists(Long categoryId) {
+        if (categoryId != null && categoryId > 0) {
+            return true;
+        }
+        return false;
     }
 }

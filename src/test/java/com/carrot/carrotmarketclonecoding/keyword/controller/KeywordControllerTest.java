@@ -1,22 +1,31 @@
 package com.carrot.carrotmarketclonecoding.keyword.controller;
 
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.CATEGORY_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_OVER_LIMIT;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.UNAUTHORIZED_ACCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_KEYWORD_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.EDIT_KEYWORD_SUCCESS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.KeywordNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.KeywordOverLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.service.impl.KeywordServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -117,37 +126,110 @@ class KeywordControllerTest {
         // then
     }
 
-    @Test
-    @DisplayName("키워드 편집 성공 컨트롤러 테스트")
-    void editSuccess() {
-        // given
-        // when
-        // then
+    @Nested
+    @DisplayName("키워드 편집 컨트롤러 테스트")
+    class Edit {
+
+        @Test
+        @DisplayName("성공")
+        void editSuccess() throws Exception {
+            // given
+            // when
+            doNothing().when(keywordService).edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
+
+            // then
+            mvc.perform(patch("/keyword/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", equalTo(200)))
+                    .andExpect(jsonPath("$.result", equalTo(true)))
+                    .andExpect(jsonPath("$.message", equalTo(EDIT_KEYWORD_SUCCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않을 경우 401 반환")
+        void editFailMemberNotFound() throws Exception {
+            // given
+            // when
+            doThrow(MemberNotFoundException.class).when(keywordService)
+                    .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
+
+            // then
+            mvc.perform(patch("/keyword/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status", equalTo(401)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("편집할 키워드가 존재하지 않을 경우 400 반환")
+        void editFailKeywordNotFound() throws Exception {
+            // given
+            // when
+            doThrow(KeywordNotFoundException.class).when(keywordService)
+                    .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
+
+            // then
+            mvc.perform(patch("/keyword/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(KEYWORD_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("편집할 키워드가 사용자의 키워드가 아닐 경우 400 반환")
+        void editFailNotKeywordMember() throws Exception {
+            // given
+            // when
+            doThrow(UnauthorizedAccessException.class).when(keywordService)
+                    .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
+
+            // then
+            mvc.perform(patch("/keyword/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status", equalTo(403)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
+
+        @Test
+        @DisplayName("저장할 카테고리가 존재하지 않을 경우 400 반환")
+        void editFailCategoryNotFound() throws Exception {
+            // given
+            // when
+            doThrow(CategoryNotFoundException.class).when(keywordService)
+                    .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
+
+            // then
+            mvc.perform(patch("/keyword/{id}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status", equalTo(400)))
+                    .andExpect(jsonPath("$.result", equalTo(false)))
+                    .andExpect(jsonPath("$.message", equalTo(CATEGORY_NOT_FOUND.getMessage())))
+                    .andExpect(jsonPath("$.data", equalTo(null)));
+        }
     }
 
-    @Test
-    @DisplayName("사용자가 존재하지 않을 경우 403 반환")
-    void editFailMemberNotFound() {
-        // given
-        // when
-        // then
-    }
-
-    @Test
-    @DisplayName("편집할 키워드가 존재하지 않을 경우 404 반환")
-    void editFailKeywordNotFound() {
-        // given
-        // when
-        // then
-    }
-
-    @Test
-    @DisplayName("저장할 카테고리가 존재하지 않을 경우 404 반환")
-    void editFailCategoryNotFound() {
-        // given
-        // when
-        // then
-    }
 
     @Test
     @DisplayName("키워드 삭제 성공 컨트롤러 테스트")

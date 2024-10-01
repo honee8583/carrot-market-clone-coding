@@ -1,7 +1,10 @@
 package com.carrot.carrotmarketclonecoding.keyword.service;
 
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.CATEGORY_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_OVER_LIMIT;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.UNAUTHORIZED_ACCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,10 +14,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
+import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.KeywordNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.KeywordOverLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordCreateRequestDto;
+import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordEditRequestDto;
 import com.carrot.carrotmarketclonecoding.keyword.repository.KeywordRepository;
 import com.carrot.carrotmarketclonecoding.keyword.service.impl.KeywordServiceImpl;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
@@ -37,6 +46,9 @@ class KeywordServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
 
     @InjectMocks
     private KeywordServiceImpl keywordService;
@@ -109,38 +121,125 @@ class KeywordServiceTest {
         // then
     }
 
-    @Test
-    @DisplayName("키워드 편집 서비스 성공 테스트")
-    void editSuccess() {
-        // given
-        // when
-        // then
-    }
+    @Nested
+    @DisplayName("키워드 편집 서비스 테스트")
+    class Edit {
 
-    @Test
-    @DisplayName("키워드 편집 서비스 실패 테스트 - 사용자가 존재하지 않을 경우 예외 발생")
-    void editFailMemberNotFound() {
-        // given
-        // when
-        // then
-    }
+        @Test
+        @DisplayName("성공")
+        void editSuccess() {
+            // given
+            Member mockMember = Member.builder()
+                    .id(1L)
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
-    @Test
-    @DisplayName("키워드 편집 서비스 실패 테스트 - 편집할 키워드가 존재하지 않을 경우 예외 발생")
-    void editFailKeywordNotFound() {
-        // given
-        // when
-        // then
-    }
+            Keyword mockKeyword = Keyword.builder()
+                    .id(1L)
+                    .name("keyword")
+                    .member(mockMember)
+                    .category(Category.builder().id(1L).build())
+                    .build();
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.of(mockKeyword));
 
-    @Test
-    @DisplayName("키워드 편집 서비스 실패 테스트 - 저장할 카테고리가 존재하지 않을 경우 예외 발생")
-    void editFailCategoryNotFound() {
-        // given
-        // when
-        // then
-    }
+            Category mockCategory = Category.builder()
+                    .id(2L)
+                    .build();
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
+            // when
+            KeywordEditRequestDto editRequestDto = KeywordEditRequestDto.builder()
+                    .name("edited keyword")
+                    .categoryId(1L)
+                    .minPrice(0)
+                    .maxPrice(100000)
+                    .build();
+            keywordService.edit(AUTH_ID, 1L, editRequestDto);
+
+            // then
+            assertThat(mockKeyword.getName()).isEqualTo(editRequestDto.getName());
+            assertThat(mockKeyword.getMinPrice()).isEqualTo(editRequestDto.getMinPrice());
+            assertThat(mockKeyword.getMaxPrice()).isEqualTo(editRequestDto.getMaxPrice());
+            assertThat(mockKeyword.getCategory().getId()).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않을 경우 예외 발생")
+        void editFailMemberNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.edit(AUTH_ID, 1L, mock(KeywordEditRequestDto.class)))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("편집할 키워드가 존재하지 않을 경우 예외 발생")
+        void editFailKeywordNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.edit(AUTH_ID, 1L, mock(KeywordEditRequestDto.class)))
+                    .isInstanceOf(KeywordNotFoundException.class)
+                    .hasMessage(KEYWORD_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("사용자의 키워드가 아닐경우 예외 발생")
+        void editFailMemberNotEqualKeywordMember() {
+            // given
+            Member mockMember = Member.builder()
+                    .id(1L)
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+
+            Keyword mockKeyword = Keyword.builder()
+                    .id(1L)
+                    .member(Member.builder().id(2L).build())
+                    .build();
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.of(mockKeyword));
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.edit(AUTH_ID, 1L, mock(KeywordEditRequestDto.class)))
+                    .isInstanceOf(UnauthorizedAccessException.class)
+                    .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
+        }
+
+        @Test
+        @DisplayName("저장할 카테고리가 존재하지 않을 경우 예외 발생")
+        void editFailCategoryNotFound() {
+            // given
+            Member mockMember = Member.builder()
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+
+            Keyword mockKeyword = Keyword.builder()
+                    .member(mockMember)
+                    .build();
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.of(mockKeyword));
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            KeywordEditRequestDto editRequestDto = KeywordEditRequestDto
+                    .builder()
+                    .categoryId(1L)
+                    .build();
+            assertThatThrownBy(() -> keywordService.edit(AUTH_ID, 1L, editRequestDto))
+                    .isInstanceOf(CategoryNotFoundException.class)
+                    .hasMessage(CATEGORY_NOT_FOUND.getMessage());
+        }
+    }
 
     @Test
     @DisplayName("키워드 삭제 서비스 성공 테스트")
