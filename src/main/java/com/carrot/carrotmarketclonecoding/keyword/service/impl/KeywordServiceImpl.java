@@ -62,7 +62,10 @@ public class KeywordServiceImpl implements KeywordService {
 
     @Override
     public void delete(Long authId, Long keywordId) {
-
+        Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+        Keyword keyword = keywordRepository.findById(keywordId).orElseThrow(KeywordNotFoundException::new);
+        isMemberOfKeyword(keyword, member);
+        keywordRepository.delete(keyword);
     }
 
     private void isKeywordCountOverLimit(int count) {

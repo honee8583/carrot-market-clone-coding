@@ -1,13 +1,7 @@
 package com.carrot.carrotmarketclonecoding.keyword.controller;
 
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.CATEGORY_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.KEYWORD_OVER_LIMIT;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.UNAUTHORIZED_ACCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.ADD_KEYWORD_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.EDIT_KEYWORD_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_KEYWORDS_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -15,9 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,6 +34,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 @WithCustomMockUser
@@ -62,57 +56,48 @@ class KeywordControllerTest {
         @DisplayName("성공")
         void addSuccess() throws Exception {
             // given
-            // when
             doNothing().when(keywordService).add(anyLong(), any(KeywordCreateRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(post("/keyword")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(post("/keyword")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.status", equalTo(201)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(ADD_KEYWORD_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isCreated(), 201, true, ADD_KEYWORD_SUCCESS.getMessage(), "$.data", null);
         }
 
         @Test
         @DisplayName("존재하지 않는 사용자일 경우 401 반환")
         void addFailMemberNotFound() throws Exception {
             // given
-            // when
             doThrow(MemberNotFoundException.class).when(keywordService).add(anyLong(), any(KeywordCreateRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(post("/keyword")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(post("/keyword")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isUnauthorized(), 401, false, MEMBER_NOT_FOUND.getMessage(), "$.data", null);
         }
 
         @Test
         @DisplayName("사용자의 키워드 개수가 30개를 넘어갈경우 400 반환")
         void addFailKeywordOverLimit() throws Exception {
             // given
-            // when
             doThrow(KeywordOverLimitException.class).when(keywordService).add(anyLong(), any(KeywordCreateRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(post("/keyword")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(post("/keyword")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordCreateRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(KEYWORD_OVER_LIMIT.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isBadRequest(), 400, false, KEYWORD_OVER_LIMIT.getMessage(),"$.data", null);
         }
     }
 
@@ -128,33 +113,26 @@ class KeywordControllerTest {
                     new KeywordDetailResponseDto(),
                     new KeywordDetailResponseDto()
             );
-
-            // when
             when(keywordService.getAllKeywords(anyLong())).thenReturn(keywords);
 
+            // when
+            ResultActions resultActions = mvc.perform(get("/keyword"));
+
             // then
-            mvc.perform(get("/keyword"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(GET_KEYWORDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.size()", equalTo(2)));
+            assertResponseResult(resultActions, status().isOk(), 200, true, GET_KEYWORDS_SUCCESS.getMessage(), "$.data.size()", 2);
         }
 
         @Test
         @DisplayName("존재하지 않는 사용자일 경우 401 반환")
         void getKeywordsFailMemberNotFound() throws Exception {
             // given
-            // when
             doThrow(MemberNotFoundException.class).when(keywordService).getAllKeywords(anyLong());
 
+            // when
+            ResultActions resultActions = mvc.perform(get("/keyword"));
+
             // then
-            mvc.perform(get("/keyword"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isUnauthorized(), 401, false, MEMBER_NOT_FOUND.getMessage(), "$.data", null);
         }
     }
 
@@ -166,124 +144,145 @@ class KeywordControllerTest {
         @DisplayName("성공")
         void editSuccess() throws Exception {
             // given
-            // when
             doNothing().when(keywordService).edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(patch("/keyword/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(patch("/keyword/{id}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(EDIT_KEYWORD_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isOk(), 200, true, EDIT_KEYWORD_SUCCESS.getMessage(), "$.data", null);
         }
 
         @Test
         @DisplayName("사용자가 존재하지 않을 경우 401 반환")
         void editFailMemberNotFound() throws Exception {
             // given
-            // when
             doThrow(MemberNotFoundException.class).when(keywordService)
                     .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(patch("/keyword/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(patch("/keyword/{id}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isUnauthorized(), 401, false, MEMBER_NOT_FOUND.getMessage(), "$.data", null);
         }
 
         @Test
         @DisplayName("편집할 키워드가 존재하지 않을 경우 400 반환")
         void editFailKeywordNotFound() throws Exception {
             // given
-            // when
             doThrow(KeywordNotFoundException.class).when(keywordService)
                     .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
 
-            // then
-            mvc.perform(patch("/keyword/{id}", 1L)
+            // when
+            ResultActions resultActions = mvc.perform(patch("/keyword/{id}", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(KEYWORD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
+                    // then
+            assertResponseResult(resultActions, status().isBadRequest(), 400, false, KEYWORD_NOT_FOUND.getMessage(), "$.data", null);
         }
 
         @Test
         @DisplayName("편집할 키워드가 사용자의 키워드가 아닐 경우 400 반환")
         void editFailNotKeywordMember() throws Exception {
             // given
-            // when
             doThrow(UnauthorizedAccessException.class).when(keywordService)
                     .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(patch("/keyword/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(patch("/keyword/{id}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status", equalTo(403)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isForbidden(), 403, false, UNAUTHORIZED_ACCESS.getMessage(),"$.data", null);
         }
 
         @Test
         @DisplayName("저장할 카테고리가 존재하지 않을 경우 400 반환")
         void editFailCategoryNotFound() throws Exception {
             // given
-            // when
             doThrow(CategoryNotFoundException.class).when(keywordService)
                     .edit(anyLong(), anyLong(), any(KeywordEditRequestDto.class));
 
+            // when
+            ResultActions resultActions = mvc.perform(patch("/keyword/{id}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
             // then
-            mvc.perform(patch("/keyword/{id}", 1L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(mock(KeywordEditRequestDto.class)))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(CATEGORY_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResponseResult(resultActions, status().isBadRequest(), 400, false, CATEGORY_NOT_FOUND.getMessage(), "$.data", null);
         }
     }
 
+    @Nested
+    @DisplayName("키워드 삭제 컨트롤러 테스트")
+    class Delete {
 
-    @Test
-    @DisplayName("키워드 삭제 성공 컨트롤러 테스트")
-    void deleteSuccess() {
-        // given
-        // when
-        // then
+        @Test
+        @DisplayName("성공")
+        void deleteSuccess() throws Exception {
+            // given
+            doNothing().when(keywordService).delete(anyLong(), anyLong());
+
+            // when
+            ResultActions resultActions = mvc.perform(delete("/keyword/{id}", 1L)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
+            // then
+            assertResponseResult(resultActions, status().isOk(), 200, true, DELETE_KEYWORDS_SUCCESS.getMessage(), "$.data", null);
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않을 경우 401 반환")
+        void deleteFailMemberNotFound() throws Exception {
+            // given
+            doThrow(MemberNotFoundException.class).when(keywordService).delete(anyLong(), anyLong());
+
+            // when
+            ResultActions resultActions = mvc.perform(delete("/keyword/{id}", 1L)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
+            // then
+            assertResponseResult(resultActions, status().isUnauthorized(), 401, false, MEMBER_NOT_FOUND.getMessage(), "$.data", null);
+        }
+
+        @Test
+        @DisplayName("삭제할 키워드가 존재하지 않을 경우 400 반환")
+        void deleteFailKeywordNotFound() throws Exception {
+            // given
+            doThrow(KeywordNotFoundException.class).when(keywordService).delete(anyLong(), anyLong());
+
+            // when
+            ResultActions resultActions = mvc.perform(delete("/keyword/{id}", 1L)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()));
+
+            // then
+            assertResponseResult(resultActions, status().isBadRequest(), 400, false, KEYWORD_NOT_FOUND.getMessage(), "$.data", null);
+        }
     }
 
-    @Test
-    @DisplayName("사용자가 존재하지 않을 경우 403 반환")
-    void deleteFailMemberNotFound() {
-        // given
-        // when
-        // then
-    }
-
-    @Test
-    @DisplayName("삭제할 키워드가 존재하지 않을 경우 404 반환")
-    void deleteFailKeywordNotFound() {
-        // given
-        // when
-        // then
+    private void assertResponseResult(ResultActions resultActions,
+                                     ResultMatcher resultMatcher,
+                                     int status,
+                                     boolean result,
+                                     String message,
+                                     String dataJsonPath,
+                                     Object data) throws Exception {
+        resultActions.andExpect(resultMatcher)
+                .andExpect(jsonPath("$.status", equalTo(status)))
+                .andExpect(jsonPath("$.result", equalTo(result)))
+                .andExpect(jsonPath("$.message", equalTo(message)))
+                .andExpect(jsonPath(dataJsonPath, equalTo(data)));
     }
 }

@@ -275,27 +275,79 @@ class KeywordServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("키워드 삭제 서비스 성공 테스트")
-    void deleteSuccess() {
-        // given
-        // when
-        // then
-    }
+    @Nested
+    @DisplayName("키워드 삭제 서비스 테스트")
+    class Delete {
 
-    @Test
-    @DisplayName("키워드 삭제 서비스 실패 테스트 - 존재하지 않는 사용자일 경우 예외 발생")
-    void deleteFailMemberNotFound() {
-        // given
-        // when
-        // then
-    }
+        @Test
+        @DisplayName("성공")
+        void deleteSuccess() {
+            // given
+            Member mockMember = Member.builder()
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
-    @Test
-    @DisplayName("키워드 삭제 서비스 실패 테스트 - 삭제할 키워드가 존재하지 않을 경우 예외 발생")
-    void deleteFailKeywordNotFound() {
-        // given
-        // when
-        // then
+            Keyword mockKeyword = Keyword.builder()
+                    .member(mockMember)
+                    .build();
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.of(mockKeyword));
+
+            // when
+            keywordService.delete(AUTH_ID, 1L);
+
+            // then
+            verify(keywordRepository, times(1)).delete(mockKeyword);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 사용자일 경우 예외 발생")
+        void deleteFailMemberNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.delete(AUTH_ID, 1L))
+                    .isInstanceOf(MemberNotFoundException.class)
+                    .hasMessage(MEMBER_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("삭제할 키워드가 존재하지 않을 경우 예외 발생")
+        void deleteFailKeywordNotFound() {
+            // given
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.delete(AUTH_ID, 1L))
+                    .isInstanceOf(KeywordNotFoundException.class)
+                    .hasMessage(KEYWORD_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        @DisplayName("삭제할 키워드가 사용자의 키워드가 아닐 경우 예외 발생")
+        void deleteFailMemberIsNotKeywordMember() {
+            // given
+            Member mockMember = Member.builder()
+                    .id(1L)
+                    .authId(AUTH_ID)
+                    .build();
+            when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
+
+            Keyword mockKeyword = Keyword.builder()
+                    .id(1L)
+                    .member(Member.builder().id(2L).build())
+                    .build();
+            when(keywordRepository.findById(anyLong())).thenReturn(Optional.of(mockKeyword));
+
+            // when
+            // then
+            assertThatThrownBy(() -> keywordService.delete(AUTH_ID, 1L))
+                    .isInstanceOf(UnauthorizedAccessException.class)
+                    .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
+        }
     }
 }
