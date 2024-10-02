@@ -26,16 +26,11 @@ public class NotificationServiceImpl implements NotificationService {
     private final SseEmitterService sseEmitterService;
 
     @Override
-    public void add(Long authId, NotificationType type, String content) {
+    public void add(Long authId, NotificationType type, Object content) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
-        Notification notification = Notification.builder()
-                .member(member)
-                .content(content)
-                .type(type)
-                .isRead(false)
-                .build();
+        Notification notification = new Notification(member, String.valueOf(content), type);
         notificationRepository.save(notification);
-        sseEmitterService.send(authId, NotificationType.LIKE, NotificationResponseDto.createNotificationResponseDto(notification));
+        sseEmitterService.send(authId, type, NotificationResponseDto.createNotificationResponseDto(notification));
     }
 
     @Override

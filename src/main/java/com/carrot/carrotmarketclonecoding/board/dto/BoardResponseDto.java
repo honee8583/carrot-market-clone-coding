@@ -111,4 +111,29 @@ public class BoardResponseDto {
                     .build();
         }
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @ToString
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BoardNotificationResponseDto {
+        private Long id;
+        private String title;
+        private Integer price;
+        private String place;
+        private LocalDateTime createDate;
+        private String pictureUrl;
+
+        public BoardNotificationResponseDto(Board board) {
+            this.id = board.getId();
+            this.title = board.getTitle();
+            this.price = board.getPrice();
+            this.createDate = board.getCreateDate();
+
+            List<BoardPicture> boardPictures = board.getBoardPictures();
+            this.pictureUrl = boardPictures != null && boardPictures.size() > 0 ? boardPictures.get(0).getPictureUrl() : null;
+        }
+    }
 }
