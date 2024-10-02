@@ -6,7 +6,9 @@ import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,5 +63,28 @@ class KeywordRepositoryTest {
 
         // then
         assertThat(keywords.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("쿼리메서드 findByNameIn() 테스트")
+    void findByNameIn() {
+        // given
+        Set<String> words = new HashSet<>(Arrays.asList(
+             "keyword1", "keyword2", "keyword3"
+        ));
+
+        keywordRepository.saveAll(Arrays.asList(
+                Keyword.builder().name("keyword1").build(),
+                Keyword.builder().name("keyword2").build(),
+                Keyword.builder().name("keyword3").build(),
+                Keyword.builder().name("keyword4").build(),
+                Keyword.builder().name("keyword5").build()
+        ));
+
+        // when
+        Set<Keyword> keywords = keywordRepository.findByNameIn(words);
+
+        // then
+        assertThat(keywords.size()).isEqualTo(3);
     }
 }
