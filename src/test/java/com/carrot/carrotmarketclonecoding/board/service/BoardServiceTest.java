@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
+import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardNotificationResponseDto;
 import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
@@ -30,12 +31,18 @@ import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitExcept
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
+import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
+import com.carrot.carrotmarketclonecoding.keyword.repository.KeywordRepository;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
+import com.carrot.carrotmarketclonecoding.notification.domain.enums.NotificationType;
+import com.carrot.carrotmarketclonecoding.notification.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -83,6 +90,12 @@ class BoardServiceTest {
     private SearchKeywordRedisService searchKeywordRedisService;
 
     @Mock
+    private KeywordRepository keywordRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Nested
@@ -93,40 +106,48 @@ class BoardServiceTest {
         @DisplayName(SUCCESS)
         void registerBoardSuccess() {
             // given
-            Long memberId = 1L;
-            Long categoryId = 1L;
-            Member mockMember = Member.builder().id(memberId).build();
-            Category mockCategory = Category.builder().id(categoryId).build();
-
-            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
-            Board mockBoard = Board.builder()
-                            .id(1L)
-                            .title(boardRegisterRequestDto.getTitle())
-                            .member(mockMember)
-                            .category(mockCategory)
-                            .method(boardRegisterRequestDto.getMethod())
-                            .price(boardRegisterRequestDto.getPrice())
-                            .suggest(boardRegisterRequestDto.getSuggest())
-                            .description(boardRegisterRequestDto.getDescription())
-                            .place(boardRegisterRequestDto.getPlace())
-                            .tmp(false)
-                            .build();
-
+            Member mockMember = Member.builder()
+                    .id(1L)
+                    .authId(1111L)
+                    .build();
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
-            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
-            when(boardRepository.save(any(Board.class))).thenReturn(mockBoard);
 
-            ArgumentCaptor<Board> boardCaptor = ArgumentCaptor.forClass(Board.class);
+            Category mockCategory = Category.builder().id(1L).build();
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
+
+            Set<Keyword> keywords = new HashSet<>(Arrays.asList(
+                    Keyword.builder()
+                            .member(Member.builder().authId(2222L).build())
+                            .name("keyword1")
+                            .build(),
+                    Keyword.builder()
+                            .member(Member.builder().authId(3333L).build())
+                            .name("keyword2")
+                            .build()
+            ));
+            when(keywordRepository.findByNameIn(anySet())).thenReturn(keywords);
 
             // when
-            Long registerId = boardService.register(boardRegisterRequestDto, memberId, false);
+            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
+            Long registerId = boardService.register(boardRegisterRequestDto, 1L, false);
 
             // then
+            ArgumentCaptor<Board> boardCaptor = ArgumentCaptor.forClass(Board.class);
             verify(boardRepository).save(boardCaptor.capture());
             Board capturedBoard = boardCaptor.getValue();
-
-            verify(boardPictureService).uploadPicturesIfExistAndUnderLimit(eq(boardRegisterRequestDto.getPictures()), eq(capturedBoard));
             assertThat(registerId).isEqualTo(capturedBoard.getId());
+
+            verify(boardPictureService)
+                    .uploadPicturesIfExistAndUnderLimit(eq(boardRegisterRequestDto.getPictures()), eq(capturedBoard));
+
+            ArgumentCaptor<BoardNotificationResponseDto> notificationCaptor = ArgumentCaptor
+                    .forClass(BoardNotificationResponseDto.class);
+            verify(notificationService, times(2))
+                    .add(anyLong(), any(NotificationType.class), notificationCaptor.capture());
+            BoardNotificationResponseDto notification = notificationCaptor.getValue();
+            assertThat(notification.getTitle()).isEqualTo(capturedBoard.getTitle());
+            assertThat(notification.getPrice()).isEqualTo(capturedBoard.getPrice());
+//            assertThat(notification.getPictureUrl()).isEqualTo(capturedBoard.getBoardPictures().get(0).getPictureUrl());
         }
 
         @Test
