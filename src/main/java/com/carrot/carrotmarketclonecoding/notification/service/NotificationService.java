@@ -5,7 +5,7 @@ import com.carrot.carrotmarketclonecoding.notification.dto.NotificationResponseD
 import java.util.List;
 
 public interface NotificationService {
-    void add(Long authId, NotificationType type, String content);
+    void add(Long authId, NotificationType type, Object content);
 
     List<NotificationResponseDto> getAllNotifications(Long authId);
 
