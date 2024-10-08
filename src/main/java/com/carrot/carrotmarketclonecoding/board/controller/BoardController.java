@@ -9,6 +9,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.SEARCH_BOARDS_SUCCESS;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
+import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
@@ -21,6 +22,7 @@ import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -34,8 +36,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/board")
 @RequiredArgsConstructor
@@ -78,7 +82,7 @@ public class BoardController {
     }
 
     @GetMapping
-    public ResponseEntity<?> search(@AuthenticationPrincipal LoginUser loginUser, @RequestBody BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<?> search(@AuthenticationPrincipal LoginUser loginUser, BoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
         Long authId = Long.parseLong(loginUser.getUsername());
         PageResponseDto<BoardSearchResponseDto> boards = boardService.search(authId, searchRequestDto, pageable);
         return ResponseEntity
@@ -87,7 +91,7 @@ public class BoardController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> searchMyBoards(@AuthenticationPrincipal LoginUser loginUser, @RequestBody MyBoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<?> searchMyBoards(@AuthenticationPrincipal LoginUser loginUser, MyBoardSearchRequestDto searchRequestDto, @PageableDefault(size = 10) Pageable pageable) {
         Long authId = Long.parseLong(loginUser.getUsername());
         PageResponseDto<BoardSearchResponseDto> boards = boardService.searchMyBoards(authId, searchRequestDto, pageable);
         return ResponseEntity
