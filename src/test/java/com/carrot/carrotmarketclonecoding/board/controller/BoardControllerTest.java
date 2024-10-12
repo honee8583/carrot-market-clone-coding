@@ -19,10 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
-import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
-import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
-import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
-import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.MyBoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
@@ -33,6 +29,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitExcept
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
+import com.carrot.carrotmarketclonecoding.util.ControllerTestUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,11 +46,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 @WithCustomMockUser
 @WebMvcTest(controllers = BoardController.class)
-class BoardControllerTest {
+class BoardControllerTest extends ControllerTestUtil {
 
     @Autowired
     private MockMvc mvc;
@@ -69,26 +66,21 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void boardRegisterSuccess() throws Exception {
             // given
-
             // when
             when(boardService.register(any(), any(), anyBoolean())).thenReturn(1L);
 
             // then
-            mvc.perform(post("/board/register")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(post("/board/register"), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place"))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.status", equalTo(201)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_REGISTER_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place")),
+                    status().isCreated(), 201, true,
+                    BOARD_REGISTER_SUCCESS.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -99,66 +91,61 @@ class BoardControllerTest {
             when(boardService.register(any(), anyLong(), anyBoolean())).thenReturn(1L);
 
             // then
-            mvc.perform(post("/board/register/tmp")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(post("/board/register/tmp"), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place"))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.status", equalTo(201)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_REGISTER_TEMPORARY_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place")),
+                    status().isCreated(), 201, true,
+                    BOARD_REGISTER_TEMPORARY_SUCCESS.getMessage(),
+                    "$.data", null);
         }
 
         @Test
         @DisplayName(FAIL_FILE_COUNT_OVER_10)
         void fileUploadLimitExceeded() throws Exception {
             // given
-            MockMultipartFile[] pictures = new MockMultipartFile[11];
-            for (int i = 0; i <= 10; i++) {
-                pictures[i] = new MockMultipartFile(
-                        "pictures",
-                        "picture " + i + ".png",
-                        "image/png",
-                        ("picture " + i).getBytes());
-            }
-
             // when
             when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(FileUploadLimitException.class);
 
             // then
-            mvc.perform(multipart("/board/register")
-                            .file(pictures[0])
-                            .file(pictures[1])
-                            .file(pictures[2])
-                            .file(pictures[3])
-                            .file(pictures[4])
-                            .file(pictures[5])
-                            .file(pictures[6])
-                            .file(pictures[7])
-                            .file(pictures[8])
-                            .file(pictures[9])
-                            .file(pictures[10])
+            MockMultipartFile[] pictures = createMockMultipartFiles(11);
+            assertResult(mvc.perform(requestWithCsrf(
+                            requestMultipartFiles(multipart("/board/register"), pictures)
+                            , MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA))
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(jsonPath("$.status", equalTo(500)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(FILE_UPLOAD_LIMIT.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place")),
+                    status().isInternalServerError(), 500, false,
+                    FILE_UPLOAD_LIMIT.getMessage(),
+                    "$.data", null);
+        }
+
+        private MockMultipartHttpServletRequestBuilder requestMultipartFiles(MockMultipartHttpServletRequestBuilder requestBuilder,
+                                                                             MockMultipartFile[] pictures) {
+            for (MockMultipartFile picture : pictures) {
+                requestBuilder.file(picture);
+            }
+            return requestBuilder;
+        }
+
+        private MockMultipartFile[] createMockMultipartFiles(int size) {
+            MockMultipartFile[] pictures = new MockMultipartFile[size];
+            for (int i = 0; i < size; i++) {
+                pictures[i] = new MockMultipartFile(
+                        "pictures",
+                        "picture " + i + ".png",
+                        "image/png",
+                        ("picture " + i).getBytes());
+            };
+            return pictures;
         }
 
         @Test
@@ -170,21 +157,17 @@ class BoardControllerTest {
 
             // when
             // then
-            mvc.perform(post("/board/register")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(post("/board/register"), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(INPUT_NOT_VALID.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(map)));
+                            .param("place", "place")),
+                    status().isBadRequest(), 400, false,
+                    INPUT_NOT_VALID.getMessage(),
+                    "$.data", map);
         }
 
         @Test
@@ -195,21 +178,17 @@ class BoardControllerTest {
             when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(MemberNotFoundException.class);
 
             // then
-            mvc.perform(post("/board/register")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(post("/board/register"), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place")),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -220,21 +199,17 @@ class BoardControllerTest {
             when(boardService.register(any(), anyLong(), anyBoolean())).thenThrow(CategoryNotFoundException.class);
 
             // then
-            mvc.perform(post("/board/register")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(post("/board/register")
                             .param("title", "title")
                             .param("categoryId", "1")
                             .param("method", "SELL")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description")
-                            .param("place", "place"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(CATEGORY_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place"), MediaType.MULTIPART_FORM_DATA)),
+                    status().isBadRequest(), 400, false,
+                    CATEGORY_NOT_FOUND.getMessage(),
+                    "$.data",null);
         }
     }
 
@@ -246,38 +221,32 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void boardDetailSuccess() throws Exception {
             // given
+            // when
             Long boardId = 1L;
             BoardDetailResponseDto response = BoardDetailResponseDto.builder()
                     .id(boardId)
                     .build();
-
-            // when
             when(boardService.detail(anyLong(), any())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board/{id}", boardId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_DETAIL_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.id", equalTo(boardId.intValue())));
+            assertResult(mvc.perform(get("/board/{id}", boardId)),
+                    status().isOk(), 200, true,
+                    BOARD_GET_DETAIL_SUCCESS.getMessage(),
+                    "$.data.id", boardId.intValue());
         }
 
         @Test
         @DisplayName(FAIL_BOARD_NOT_FOUND)
         void boardDetailBoardNotFound() throws Exception {
             // given
-
             // when
             when(boardService.detail(anyLong(), any())).thenThrow(new BoardNotFoundException());
 
             // then
-            mvc.perform(get("/board/{id}", 1L))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(get("/board/{id}", 1L)),
+                    status().isBadRequest(), 400, false,
+                    BOARD_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -289,55 +258,39 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void searchBoardsSuccess() throws Exception {
             // given
-            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
-            BoardSearchRequestDto searchRequestDto = BoardSearchRequestDto
-                    .builder()
-                    .categoryId(1L)
-                    .keyword("title")
-                    .minPrice(0)
-                    .maxPrice(20000)
-                    .order(SearchOrder.NEWEST)
-                    .build();
-
             // when
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(2, 0, 10, 2);
             when(boardService.search(anyLong(), any(), any())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.contents.size()", equalTo(2)));
+            assertResult(mvc.perform(get("/board")
+                            .param("categoryId", "1")
+                            .param("keyword", "title")
+                            .param("minPrice", "0")
+                            .param("maxPrice", "20000")
+                            .param("order", "NEWEST")),
+                    status().isOk(), 200, true,
+                    SEARCH_BOARDS_SUCCESS.getMessage(),
+                    "$.data.contents.size()", 2);
         }
 
         @Test
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void searchBoardsMemberNotFound() throws Exception {
             // given
-            BoardSearchRequestDto searchRequestDto = BoardSearchRequestDto
-                    .builder()
-                    .categoryId(1L)
-                    .keyword("title")
-                    .minPrice(0)
-                    .maxPrice(20000)
-                    .order(SearchOrder.NEWEST)
-                    .build();
-
             // when
             doThrow(MemberNotFoundException.class).when(boardService).search(any(), any(), any());
 
             // then
-            mvc.perform(get("/board")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(get("/board")
+                            .param("categoryId", "1")
+                            .param("keyword", "title")
+                            .param("minPrice", "0")
+                            .param("maxPrice", "20000")
+                            .param("order", "NEWEST")),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -349,21 +302,17 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void searchBoardsByStatusSuccess() throws Exception {
             // given
-            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(10, 0, 10, 30);
-            MyBoardSearchRequestDto searchRequestDto = new MyBoardSearchRequestDto(Status.SELL, true);
-
             // when
+            PageResponseDto<BoardSearchResponseDto> response = createBoardSearchResponse(10, 0, 10, 30);
             when(boardService.searchMyBoards(anyLong(), any(), any())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board/my")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(searchRequestDto)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(SEARCH_BOARDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.contents.size()", equalTo(10)))
+            assertResult(mvc.perform(get("/board/my")
+                            .param("status", "SELL")
+                            .param("hide", "true")),
+                    status().isOk(), 200, true,
+                    SEARCH_BOARDS_SUCCESS.getMessage(),
+                    "$.data.contents.size()", 10)
                     .andExpect(jsonPath("$.data.totalPage", equalTo(3)))
                     .andExpect(jsonPath("$.data.totalElements", equalTo(30)))
                     .andExpect(jsonPath("$.data.first", equalTo(true)))
@@ -379,14 +328,12 @@ class BoardControllerTest {
             doThrow(MemberNotFoundException.class).when(boardService).searchMyBoards(anyLong(), any(), any());
 
             // then
-            mvc.perform(get("/board/my")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(new MyBoardSearchRequestDto(Status.SELL, true))))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(get("/board/my")
+                            .param("status", "SELL")
+                            .param("hide", "true")),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -402,21 +349,17 @@ class BoardControllerTest {
             doNothing().when(boardService).update(any(), anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/board/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(patch("/board/{id}", 1L), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
                             .param("method", "SHARE")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description2")
-                            .param("place", "place2"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_UPDATE_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place2")),
+                    status().isOk(), 200, true,
+                    BOARD_UPDATE_SUCCESS.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -427,21 +370,17 @@ class BoardControllerTest {
             doThrow(MemberNotFoundException.class).when(boardService).update(any(), anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/board/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(patch("/board/{id}", 1L), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
                             .param("method", "SHARE")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description2")
-                            .param("place", "place2"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place2")),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -452,21 +391,17 @@ class BoardControllerTest {
             doThrow(BoardNotFoundException.class).when(boardService).update(any(), anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/board/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA)
+            assertResult(mvc.perform(requestWithCsrf(patch("/board/{id}", 1L), MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
                             .param("categoryId", "2")
                             .param("method", "SHARE")
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description2")
-                            .param("place", "place2"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place2")),
+                    status().isBadRequest(), 400, false,
+                    BOARD_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -477,7 +412,7 @@ class BoardControllerTest {
             doThrow(UnauthorizedAccessException.class).when(boardService).update(any(), anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/board/{id}", 1L)
+            assertResult(mvc.perform(patch("/board/{id}", 1L)
                             .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.MULTIPART_FORM_DATA)
                             .param("title", "title2")
@@ -486,12 +421,10 @@ class BoardControllerTest {
                             .param("price", "200000")
                             .param("suggest", "true")
                             .param("description", "description2")
-                            .param("place", "place2"))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status", equalTo(403)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+                            .param("place", "place2")),
+                    status().isForbidden(), 403, false,
+                    UNAUTHORIZED_ACCESS.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -503,38 +436,28 @@ class BoardControllerTest {
         @DisplayName(SUCCESS)
         void deleteBoardSuccess() throws Exception {
             // given
-            Long boardId = 1L;
-
             // when
             doNothing().when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", boardId)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_DELETE_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(requestWithCsrf(delete("/board/{id}", 1L), null)),
+                    status().isOk(), 200, true,
+                    BOARD_DELETE_SUCCESS.getMessage(),
+                    "$.data", null);
         }
 
         @Test
         @DisplayName(FAIL_BOARD_NOT_FOUND)
         void deleteBoardFailBoardNotFound() throws Exception {
             // given
-            Long boardId = 1L;
-
             // when
             doThrow(BoardNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", boardId)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(requestWithCsrf(delete("/board/{id}", 1L), null)),
+                    status().isBadRequest(), 400, false,
+                    BOARD_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -545,13 +468,10 @@ class BoardControllerTest {
             doThrow(MemberNotFoundException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(requestWithCsrf(delete("/board/{id}", 1L), null)),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -562,13 +482,10 @@ class BoardControllerTest {
             doThrow(UnauthorizedAccessException.class).when(boardService).delete(anyLong(), anyLong());
 
             // then
-            mvc.perform(delete("/board/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status", equalTo(403)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(requestWithCsrf(delete("/board/{id}", 1L), null)),
+                    status().isForbidden(), 403, false,
+                    UNAUTHORIZED_ACCESS.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -588,12 +505,10 @@ class BoardControllerTest {
             when(boardService.tmpBoardDetail(anyLong())).thenReturn(response);
 
             // then
-            mvc.perform(get("/board/tmp"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_TMP_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.id", equalTo(response.getId().intValue())));
+            assertResult(mvc.perform(get("/board/tmp")),
+                    status().isOk(), 200, true,
+                    BOARD_GET_TMP_SUCCESS.getMessage(),
+                    "$.data.id", response.getId().intValue());
         }
 
         @Test
@@ -604,12 +519,10 @@ class BoardControllerTest {
             when(boardService.tmpBoardDetail(anyLong())).thenReturn(null);
 
             // then
-            mvc.perform(get("/board/tmp"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_GET_TMP_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(get("/board/tmp")),
+                    status().isOk(), 200, true,
+                    BOARD_GET_TMP_SUCCESS.getMessage(),
+                    "$.data", null);
         }
 
         @Test
@@ -620,14 +533,10 @@ class BoardControllerTest {
             doThrow(MemberNotFoundException.class).when(boardService).tmpBoardDetail(anyLong());
 
             // then
-            mvc.perform(get("/board/tmp")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            assertResult(mvc.perform(get("/board/tmp")),
+                    status().isUnauthorized(), 401, false,
+                    MEMBER_NOT_FOUND.getMessage(),
+                    "$.data", null);
         }
     }
 
@@ -636,7 +545,6 @@ class BoardControllerTest {
         for (int i = 0; i < length; i++) {
             boardSearchResponse.add(new BoardSearchResponseDto());
         }
-
         return new PageResponseDto<>(new PageImpl<>(boardSearchResponse, PageRequest.of(page, size), total));
     }
 }
