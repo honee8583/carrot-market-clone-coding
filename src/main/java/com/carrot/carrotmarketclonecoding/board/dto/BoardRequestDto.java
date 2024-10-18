@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 public class BoardRequestDto {
 
@@ -21,7 +20,6 @@ public class BoardRequestDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BoardRegisterRequestDto {
-        private MultipartFile[] pictures;
 
         @NotEmpty(message = TITLE_NOT_VALID)
         private String title;
@@ -75,7 +73,6 @@ public class BoardRequestDto {
         @NotEmpty(message = PLACE_NOT_VALID)
         private String place;
 
-        private MultipartFile[] newPictures;
         private Long[] removePictures;
     }
 

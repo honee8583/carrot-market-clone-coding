@@ -9,9 +9,10 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearch
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface BoardService {
-    Long register(BoardRegisterRequestDto registerRequestDto, Long authId, boolean tmp);
+    Long register(Long authId, BoardRegisterRequestDto registerRequestDto, MultipartFile[] pictures, boolean tmp);
 
     BoardDetailResponseDto detail(Long boardId, HttpServletRequest request);
 
@@ -21,7 +22,7 @@ public interface BoardService {
 
     PageResponseDto<BoardSearchResponseDto> searchMyBoards(Long authId, MyBoardSearchRequestDto searchRequestDto, Pageable pageable);
 
-    void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long authId);
+    void update(Long boardId, Long authId, BoardUpdateRequestDto updateRequestDto, MultipartFile[] newPictures);
 
     void delete(Long boardId, Long authId);
 }

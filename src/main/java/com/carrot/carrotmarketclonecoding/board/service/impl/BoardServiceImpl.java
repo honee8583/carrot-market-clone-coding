@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -50,35 +51,35 @@ public class BoardServiceImpl implements BoardService {
     private final BoardLikeRepository boardLikeRepository;
     private final KeywordRepository keywordRepository;
     private final VisitRedisService visitRedisService;
-    private final BoardPictureService boardPictureService;
     private final SearchKeywordRedisService searchKeywordRedisService;
+    private final BoardPictureService boardPictureService;
     private final NotificationService notificationService;
 
     private static final String HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
     private static final String HEADER_USER_AGENT = "User-Agent";
 
     @Override
-    public Long register(BoardRegisterRequestDto registerRequestDto, Long authId, boolean tmp) {
+    public Long register(Long authId, BoardRegisterRequestDto registerRequestDto, MultipartFile[] pictures, boolean tmp) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Category category = findCategoryIfCategoryIdNotNull(registerRequestDto.getCategoryId());
         Board board = Board.createBoard(registerRequestDto, member, category, tmp);
         board.setPriceZeroIfMethodIsShare();
         boardRepository.save(board);
-        boardPictureService.uploadPicturesIfExistAndUnderLimit(registerRequestDto.getPictures(), board);
+        boardPictureService.uploadPicturesIfExistAndUnderLimit(pictures, board);
         sendKeywordNotification(registerRequestDto, board);
         return board.getId();
     }
 
+    // TODO method name -> getBoardDetail
     @Override
     public BoardDetailResponseDto detail(Long boardId, HttpServletRequest request) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         int like = boardLikeRepository.countByBoard(board);
 
         String ip = getClientIp(request);
-        String userAgent = getUserAgent(request);
         log.debug("IP: {}", ip);
+        String userAgent = getUserAgent(request);
         log.debug("USER-AGENT: {}", userAgent);
-
         if (visitRedisService.increaseVisit(board.getId().toString(), ip, userAgent)) {
             board.increaseVisit();
         }
@@ -88,10 +89,12 @@ public class BoardServiceImpl implements BoardService {
         return BoardDetailResponseDto.createBoardDetail(board, like);
     }
 
+    // TODO method name -> getTmpBoardDetail
     @Override
     @Transactional(readOnly = true)
     public BoardDetailResponseDto tmpBoardDetail(Long authId) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
+        // TODO 임시게시글이 없을 경우 null을 반환하지 않고 예외를 발생
         Optional<Board> board = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member);
 
         if (board.isPresent()) {
@@ -121,7 +124,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public void update(BoardUpdateRequestDto updateRequestDto, Long boardId, Long authId) {
+    public void update(Long boardId, Long authId, BoardUpdateRequestDto updateRequestDto, MultipartFile[] newPictures) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         isWriterOfBoard(board, member);
@@ -133,7 +136,7 @@ public class BoardServiceImpl implements BoardService {
         board.update(updateRequestDto, category);
 
         boardPictureService.deletePicturesIfExist(updateRequestDto.getRemovePictures());
-        boardPictureService.uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), board);
+        boardPictureService.uploadPicturesIfExistAndUnderLimit(newPictures, board);
     }
 
     @Override
@@ -163,6 +166,7 @@ public class BoardServiceImpl implements BoardService {
         return authId != null && authId > 0L;
     }
 
+    // TODO Util 클래스 분리
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader(HEADER_X_FORWARDED_FOR);
         if (ip == null || ip.isEmpty()) {
@@ -171,10 +175,12 @@ public class BoardServiceImpl implements BoardService {
         return ip;
     }
 
+    // TODO Util 클래스 분리
     private String getUserAgent(HttpServletRequest request) {
         return request.getHeader(HEADER_USER_AGENT);
     }
 
+    // TODO BoardNotificationService 클래스로 분리?
     private void sendKeywordNotification(BoardRegisterRequestDto registerRequestDto, Board board) {
         Set<String> wordsNotDuplicated = getTitleAndDescriptionNotDuplicated(registerRequestDto);
         Set<Keyword> keywords = keywordRepository.findByNameIn(wordsNotDuplicated);

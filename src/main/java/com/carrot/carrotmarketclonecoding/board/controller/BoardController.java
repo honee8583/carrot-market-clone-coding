@@ -1,15 +1,8 @@
 package com.carrot.carrotmarketclonecoding.board.controller;
 
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_DELETE_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_GET_DETAIL_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_GET_TMP_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_REGISTER_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_REGISTER_TEMPORARY_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.BOARD_UPDATE_SUCCESS;
-import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.SEARCH_BOARDS_SUCCESS;
+import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
 
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
-import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
@@ -22,7 +15,6 @@ import com.carrot.carrotmarketclonecoding.common.response.ResponseResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -30,16 +22,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @RestController
 @RequestMapping("/board")
 @RequiredArgsConstructor
@@ -47,18 +37,22 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@AuthenticationPrincipal LoginUser loginUser, @ModelAttribute @Valid BoardRegisterRequestDto registerRequestDto) {
+    public ResponseEntity<?> register(@AuthenticationPrincipal LoginUser loginUser,
+                                      @RequestPart(value = "pictures", required = false) MultipartFile[] pictures,
+                                      @RequestPart("registerRequest") @Valid BoardRegisterRequestDto registerRequestDto) {
         Long authId = Long.parseLong(loginUser.getUsername());
-        boardService.register(registerRequestDto, authId, false);
+        boardService.register(authId, registerRequestDto, pictures, false);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, BOARD_REGISTER_SUCCESS.getMessage(), null));
     }
 
     @PostMapping("/register/tmp")
-    public ResponseEntity<?> registerTmp(@AuthenticationPrincipal LoginUser loginUser, @ModelAttribute BoardRegisterRequestDto registerRequestDto) {
+    public ResponseEntity<?> registerTmp(@AuthenticationPrincipal LoginUser loginUser,
+                                         @RequestPart(value = "pictures", required = false) MultipartFile[] pictures,
+                                         @RequestPart("registerRequest") BoardRegisterRequestDto registerRequestDto) {
         Long authId = Long.parseLong(loginUser.getUsername());
-        boardService.register(registerRequestDto, authId, true);
+        boardService.register(authId, registerRequestDto, pictures, true);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, BOARD_REGISTER_TEMPORARY_SUCCESS.getMessage(), null));
@@ -100,9 +94,12 @@ public class BoardController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> update(@AuthenticationPrincipal LoginUser loginUser, @PathVariable("id") Long boardId, @ModelAttribute @Valid BoardUpdateRequestDto updateRequestDto) {
+    public ResponseEntity<?> update(@AuthenticationPrincipal LoginUser loginUser,
+                                    @PathVariable("id") Long boardId,
+                                    @RequestPart("newPictures") MultipartFile[] newPictures,
+                                    @RequestPart("updateRequest") @Valid BoardUpdateRequestDto updateRequestDto) {
         Long authId = Long.parseLong(loginUser.getUsername());
-        boardService.update(updateRequestDto, boardId, authId);
+        boardService.update(boardId, authId, updateRequestDto, newPictures);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_UPDATE_SUCCESS.getMessage(), null));
