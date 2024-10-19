@@ -1,0 +1,181 @@
+== Board API
+
+=== 게시글 저장
+
+==== CURL Request
+
+include::{snippets}/board-register/board-register-success/curl-request.adoc[]
+
+==== Request Body
+include::{snippets}/board-register/board-register-success/request-parts.adoc[]
+
+- 1. registerRequest
+include::{snippets}/board-register/board-register-success/request-part-registerRequest-fields.adoc[]
+include::{snippets}/board-register/board-register-success/request-part-registerRequest-body.adoc[]
+
+- 2. pictures +
+최대 10개의 사진 첨부 (자료형 : `MultipartFile[]`)
+
+==== Response Body (200 - 저장 성공)
+정상 응답
+include::{snippets}/board-register/board-register-success/response-fields.adoc[]
+include::{snippets}/board-register/board-register-success/response-body.adoc[]
+
+==== Response Body (500 - 업로드 요청 파일개수가 10개보다 많음)
+업로드 파일은 10개를 넘어갈 수 없음
+include::{snippets}/board-register/board-register-file-upload-limit-exceeded/response-fields.adoc[]
+include::{snippets}/board-register/board-register-file-upload-limit-exceeded/response-body.adoc[]
+
+==== Response Body (400 - 입력값이 유효하지 않음)
+입력값이 비어있거나 넘어오지 않은 경우
+include::{snippets}/board-register/board-register-validation-failed/response-fields.adoc[]
+include::{snippets}/board-register/board-register-validation-failed/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+존재하지 않는 사용자가 요청한 경우
+include::{snippets}/board-register/board-register-member-not-found/response-fields.adoc[]
+include::{snippets}/board-register/board-register-member-not-found/response-body.adoc[]
+
+'''
+
+=== 임시 게시글 저장
+==== CURL Request
+include::{snippets}/board-register/board-register-tmp-success/curl-request.adoc[]
+
+==== Request Body
+include::{snippets}/board-register/board-register-tmp-success/request-part-registerRequest-fields.adoc[]
+include::{snippets}/board-register/board-register-tmp-success/request-part-registerRequest-body.adoc[]
+
+==== Response Body (200 - 저장 성공)
+정상 응답
+include::{snippets}/board-register/board-register-tmp-success/response-fields.adoc[]
+include::{snippets}/board-register/board-register-tmp-success/response-body.adoc[]
+
+'''
+
+=== 게시글 조회
+==== CURL Request
+include::{snippets}/get-board-detail/board-detail-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/get-board-detail/board-detail-success/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/get-board-detail/board-detail-success/path-parameters.adoc[]
+
+==== Response Body (200 - 성공)
+정상 응답
+include::{snippets}/get-board-detail/board-detail-success/response-fields.adoc[]
+include::{snippets}/get-board-detail/board-detail-success/response-body.adoc[]
+
+==== Response Body (400 - 존재하지 않는 게시글)
+존재하지 않는 게시글을 조회 요청할 경우
+include::{snippets}/get-board-detail/board-detail-board-not-found/response-body.adoc[]
+
+'''
+
+=== 게시글 검색
+==== CURL Request
+include::{snippets}/search-boards/search-boards-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/search-boards/search-boards-success/http-request.adoc[]
+
+==== Query Parameters
+include::{snippets}/search-boards/search-boards-success/query-parameters.adoc[]
+
+==== Response Body (200 - 성공)
+include::{snippets}/search-boards/search-boards-success/response-fields.adoc[]
+include::{snippets}/search-boards/search-boards-success/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+include::{snippets}/search-boards/search-boards-member-not-found/response-body.adoc[]
+
+'''
+
+=== 내 게시글 검색
+==== CURL Request
+include::{snippets}/search-board-by-status/search-boards-by-status-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/search-board-by-status/search-boards-by-status-success/http-request.adoc[]
+
+==== Query Parameters
+include::{snippets}/search-board-by-status/search-boards-by-status-success/query-parameters.adoc[]
+
+==== Response Body (200 - 성공)
+include::{snippets}/search-board-by-status/search-boards-by-status-success/response-fields.adoc[]
+include::{snippets}/search-board-by-status/search-boards-by-status-success/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+include::{snippets}/search-board-by-status/search-boards-by-status-fail-member-not-found/response-body.adoc[]
+
+'''
+
+=== 게시글 수정
+==== CURL Request
+include::{snippets}/update-board/board-update-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/update-board/board-update-success/http-request.adoc[]
+
+==== Request Body
+include::{snippets}/update-board/board-update-success/request-part-updateRequest-fields.adoc[]
+include::{snippets}/update-board/board-update-success/request-part-updateRequest-body.adoc[]
+
+==== Response Body (200 - 성공)
+include::{snippets}/update-board/board-update-success/response-fields.adoc[]
+include::{snippets}/update-board/board-update-success/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+include::{snippets}/update-board/board-update-fail-member-not-found/response-fields.adoc[]
+include::{snippets}/update-board/board-update-fail-member-not-found/response-body.adoc[]
+
+==== Response Body (400 - 존재하지 않는 게시글)
+include::{snippets}/update-board/board-update-fail-board-not-found/response-body.adoc[]
+
+==== Response Body (403 - 사용자의 게시글이 아님)
+include::{snippets}/update-board/board-update-fail-member-is-not-writer/response-body.adoc[]
+
+'''
+
+=== 게시글 삭제
+==== CURL Request
+include::{snippets}/delete-board/delete-board-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/delete-board/delete-board-success/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/delete-board/delete-board-success/path-parameters.adoc[]
+
+==== Response Body (200 - 성공)
+include::{snippets}/delete-board/delete-board-success/response-fields.adoc[]
+include::{snippets}/delete-board/delete-board-success/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+include::{snippets}/delete-board/delete-board-fail-member-not-found/response-body.adoc[]
+
+==== Response Body (400 - 존재하지 않는 게시글)
+include::{snippets}/delete-board/delete-board-fail-board-not-found/response-body.adoc[]
+
+==== Response Body (403 - 사용자의 게시글이 아님)
+include::{snippets}/delete-board/delete-board-fail-member-is-not-writer/response-body.adoc[]
+
+'''
+
+=== 임시저장한 게시글 조회
+==== CURL Request
+include::{snippets}/tmp-board-detail/board-detail-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/tmp-board-detail/board-detail-success/http-request.adoc[]
+
+==== Response Body (200 - 성공)
+include::{snippets}/tmp-board-detail/board-detail-success/response-fields.adoc[]
+include::{snippets}/tmp-board-detail/board-detail-success/response-body.adoc[]
+
+==== Response Body (401 - 존재하지 않는 사용자)
+include::{snippets}/tmp-board-detail/board-detail-fail-member-not-found/response-fields.adoc[]
+include::{snippets}/tmp-board-detail/board-detail-fail-member-not-found/response-body.adoc[]
+

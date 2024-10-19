@@ -130,7 +130,8 @@ class BoardServiceTest {
 
             // when
             BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
-            Long registerId = boardService.register(boardRegisterRequestDto, 1111L, false);
+            MultipartFile[] pictures = createFiles(2);
+            Long registerId = boardService.register(1111L, boardRegisterRequestDto, pictures, false);
 
             // then
             ArgumentCaptor<Board> boardCaptor = ArgumentCaptor.forClass(Board.class);
@@ -139,7 +140,7 @@ class BoardServiceTest {
             assertThat(registerId).isEqualTo(capturedBoard.getId());
 
             verify(boardPictureService)
-                    .uploadPicturesIfExistAndUnderLimit(eq(boardRegisterRequestDto.getPictures()), eq(capturedBoard));
+                    .uploadPicturesIfExistAndUnderLimit(eq(pictures), eq(capturedBoard));
 
             ArgumentCaptor<BoardNotificationResponseDto> notificationCaptor = ArgumentCaptor
                     .forClass(BoardNotificationResponseDto.class);
@@ -170,10 +171,8 @@ class BoardServiceTest {
 
             // then
             BoardRegisterRequestDto boardRegisterRequestDto = new BoardRegisterRequestDto();
-            MultipartFile[] files = createFiles(20);
-            boardRegisterRequestDto.setPictures(files);
             boardRegisterRequestDto.setCategoryId(categoryId);
-            assertThatThrownBy(() -> boardService.register(boardRegisterRequestDto, memberId, false))
+            assertThatThrownBy(() -> boardService.register(memberId, boardRegisterRequestDto, createFiles(20), false))
                     .isInstanceOf(FileUploadLimitException.class)
                     .hasMessage(FILE_UPLOAD_LIMIT.getMessage());
         }
@@ -189,7 +188,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(createRegisterRequestDto(), memberId, false))
+            assertThatThrownBy(() -> boardService.register(memberId, createRegisterRequestDto(), createFiles(2), false))
                     .isInstanceOf(CategoryNotFoundException.class)
                     .hasMessage(CATEGORY_NOT_FOUND.getMessage());
         }
@@ -203,22 +202,13 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(createRegisterRequestDto(), memberId, false))
+            assertThatThrownBy(() -> boardService.register(memberId, createRegisterRequestDto(), createFiles(2), false))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
 
         private BoardRegisterRequestDto createRegisterRequestDto() {
-            MultipartFile[] pictures = {
-                    new MockMultipartFile(
-                            "pictures",
-                            "test1.jpg",
-                            "image/jpeg",
-                            "test data".getBytes())
-            };
-
             return BoardRegisterRequestDto.builder()
-                    .pictures(pictures)
                     .title("title")
                     .categoryId(1L)
                     .method(Method.SELL)
@@ -415,14 +405,15 @@ class BoardServiceTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
             // when
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto(null);
+            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
             updateRequestDto.setMethod(Method.SHARE);
-            boardService.update(updateRequestDto, boardId, memberId);
+            MultipartFile[] newPictures = createFiles(2);
+            boardService.update(boardId, memberId, updateRequestDto, newPictures);
 
             // then
             verify(boardRepository).deleteAllByMemberAndTmpIsTrueAndIdIsNot(mockMember, boardId);
             verify(boardPictureService).deletePicturesIfExist(updateRequestDto.getRemovePictures());
-            verify(boardPictureService).uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), mockBoard);
+            verify(boardPictureService).uploadPicturesIfExistAndUnderLimit(newPictures, mockBoard);
             assertThat(mockBoard.getPrice()).isEqualTo(0);
             assertThat(mockBoard.getCategory().getId()).isEqualTo(2L);
             assertThat(mockBoard.getSuggest()).isEqualTo(false);
@@ -455,8 +446,8 @@ class BoardServiceTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
             // when
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto(null);
-            boardService.update(updateRequestDto, boardId, memberId);
+            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
+            boardService.update(boardId, memberId, updateRequestDto, createFiles(2));
 
             // then
             verify(boardRepository, times(0)).deleteAllByMemberAndTmpIsTrueAndIdIsNot(mockMember, boardId);
@@ -470,7 +461,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(null), 1L, 1L))
+            assertThatThrownBy(() -> boardService.update(1L, 1L, createUpdateRequestDto(), createFiles(2)))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -485,7 +476,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(null), 1L, memberId))
+            assertThatThrownBy(() -> boardService.update(1L, memberId, createUpdateRequestDto(), createFiles(2)))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
@@ -507,7 +498,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(null), boardId, memberId))
+            assertThatThrownBy(() -> boardService.update(boardId, memberId, createUpdateRequestDto(), createFiles(2)))
                     .isInstanceOf(UnauthorizedAccessException.class)
                     .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
         }
@@ -531,7 +522,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(createUpdateRequestDto(null), boardId, memberId))
+            assertThatThrownBy(() -> boardService.update(boardId, memberId, createUpdateRequestDto(), createFiles(2)))
                     .isInstanceOf(CategoryNotFoundException.class)
                     .hasMessage(CATEGORY_NOT_FOUND.getMessage());
         }
@@ -556,17 +547,18 @@ class BoardServiceTest {
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto(createFiles(20));
-            doThrow(FileUploadLimitException.class).when(boardPictureService).uploadPicturesIfExistAndUnderLimit(updateRequestDto.getNewPictures(), mockBoard);
+            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
+            MultipartFile[] newPictures = createFiles(20);
+            doThrow(FileUploadLimitException.class).when(boardPictureService).uploadPicturesIfExistAndUnderLimit(newPictures, mockBoard);
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(updateRequestDto, boardId, memberId))
+            assertThatThrownBy(() -> boardService.update(boardId, memberId, updateRequestDto, newPictures))
                     .isInstanceOf(FileUploadLimitException.class)
                     .hasMessage(FILE_UPLOAD_LIMIT.getMessage());
         }
 
-        private BoardUpdateRequestDto createUpdateRequestDto(MultipartFile[] pictures) {
+        private BoardUpdateRequestDto createUpdateRequestDto() {
             return BoardUpdateRequestDto.builder()
                     .title("updated title")
                     .categoryId(2L)
@@ -576,7 +568,6 @@ class BoardServiceTest {
                     .description("updated description")
                     .place("updated place")
                     .removePictures(new Long[]{1L, 2L, 3L})
-                    .newPictures(pictures)
                     .build();
         }
     }
