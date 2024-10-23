@@ -39,6 +39,7 @@ public class RestDocsTestUtil extends ControllerTestUtil {
                 .build();
     }
 
+    // TODO remove
     protected FieldDescriptor[] createResponseResultDescriptor() {
         return new FieldDescriptor[] {
                 fieldWithPath("status").description("응답 상태"),
