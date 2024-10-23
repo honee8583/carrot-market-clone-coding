@@ -3,25 +3,28 @@ package com.carrot.carrotmarketclonecoding.board.controller;
 import static com.carrot.carrotmarketclonecoding.board.displayname.BoardLikeTestDisplayNames.MESSAGE.*;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.*;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.*;
-import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
+import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeDtoFactory;
+import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeRequestHelper;
+import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeRestDocsHelper;
+import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeTestHelper;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberAlreadyLikedBoardException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
-import java.util.Arrays;
+import com.carrot.carrotmarketclonecoding.util.RestDocsConfig;
+import com.carrot.carrotmarketclonecoding.util.RestDocsHelper;
+import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
+import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,17 +32,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
 
+@Import(value = {RestDocsHelper.class,
+        RestDocsTestUtil.class,
+        RestDocsConfig.class,
+        BoardLikeRequestHelper.class,
+        BoardLikeTestHelper.class,
+        BoardLikeRestDocsHelper.class,
+        BoardLikeDtoFactory.class})
 @WithCustomMockUser
 @WebMvcTest(controllers = BoardLikeController.class)
-class BoardLikeControllerTest {
+class BoardLikeControllerTest extends RestDocsTestUtil {
 
     @Autowired
-    private MockMvc mvc;
+    private BoardLikeTestHelper testHelper;
 
     @MockBean
     private BoardLikeServiceImpl boardLikeService;
@@ -52,117 +61,122 @@ class BoardLikeControllerTest {
         @DisplayName(SUCCESS)
         void addBoardLikeSuccess() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isCreated())
+                    .status(201)
+                    .result(true)
+                    .message(ADD_BOARD_LIKE_SUCCESS.getMessage())
+                    .build();
+
             // when
             doNothing().when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.status", equalTo(201)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(ADD_BOARD_LIKE_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+
+            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
         }
 
         @Test
         @DisplayName(FAIL_BOARD_NOT_FOUND)
         void addBoardLikeFailBoardNotFound() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isBadRequest())
+                    .status(400)
+                    .result(false)
+                    .message(BOARD_NOT_FOUND.getMessage())
+                    .build();
+
             // when
             doThrow(BoardNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(BOARD_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
         }
 
         @Test
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
         void addBoardLikeFailMemberNotFound() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
+
             // when
             doThrow(MemberNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
         }
 
         @Test
         @DisplayName(FAIL_BOARD_LIKE_ALREADY_ADDED)
         void addBoardLikeFailMemberAlreadyLikedBoard() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isBadRequest())
+                    .status(400)
+                    .result(false)
+                    .message(MEMBER_ALREADY_LIKED_BOARD.getMessage())
+                    .build();
+
             // when
             doThrow(MemberAlreadyLikedBoardException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            mvc.perform(post("/board/like/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_ALREADY_LIKED_BOARD.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
         }
     }
 
     @Nested
     @DisplayName(GET_BOARD_LIKE_LIST_CONTROLLER_TEST)
-    class MemberLikedBoards {
+    class UserLikedBoards {
+
+        @Autowired
+        private BoardLikeDtoFactory dtoFactory;
 
         @Test
         @DisplayName(SUCCESS)
-        void memberLikedBoardsSuccess() throws Exception {
+        void userLikedBoardsSuccess() throws Exception {
             // given
-            List<BoardSearchResponseDto> response = Arrays.asList(
-                    new BoardSearchResponseDto(),
-                    new BoardSearchResponseDto());
+            List<BoardSearchResponseDto> response = dtoFactory.createBoardSearchResponseDtos();
             PageResponseDto<BoardSearchResponseDto> result = new PageResponseDto<>(
-                    new PageImpl<>(response, PageRequest.of(0, 10), response.size()));
+                    new PageImpl<>(response, PageRequest.of(0, 10), response.size())
+            );
+
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isOk())
+                    .status(200)
+                    .result(true)
+                    .message(GET_MEMBER_LIKED_BOARDS_SUCCESS.getMessage())
+                    .build();
 
             // when
             when(boardLikeService.getMemberLikedBoards(anyLong(), any())).thenReturn(result);
 
             // then
-            mvc.perform(get("/board/like")
-                            .param("page", "0"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(GET_MEMBER_LIKED_BOARDS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.totalPage", equalTo(1)))
-                    .andExpect(jsonPath("$.data.totalElements", equalTo(2)))
-                    .andExpect(jsonPath("$.data.first", equalTo(true)))
-                    .andExpect(jsonPath("$.data.last", equalTo(true)))
-                    .andExpect(jsonPath("$.data.numberOfElements", equalTo(2)));
+            testHelper.assertGetUserLikedBoardsSuccess(mvc, resultFields, restDocs);
         }
 
         @Test
         @DisplayName(FAIL_MEMBER_NOT_FOUND)
-        void memberLikedBoardsFailMemberNotFound() throws Exception {
+        void userLikedBoardsFailMemberNotFound() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
+
             // when
             doThrow(MemberNotFoundException.class).when(boardLikeService).getMemberLikedBoards(anyLong(), any());
 
             // then
-            mvc.perform(get("/board/like")
-                            .param("page", "0"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertGetUserLikedBoardsFailed(mvc, resultFields, restDocs);
         }
     }
 }
