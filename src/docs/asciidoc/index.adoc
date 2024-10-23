@@ -12,3 +12,5 @@ endif::[]
 
 include::board/board.adoc[]
 
+include::board/boardLike.adoc[]
+
