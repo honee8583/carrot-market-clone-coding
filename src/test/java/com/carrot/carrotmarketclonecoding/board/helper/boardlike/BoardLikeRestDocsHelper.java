@@ -15,21 +15,23 @@ import org.springframework.test.web.servlet.ResultHandler;
 @TestComponent
 public class BoardLikeRestDocsHelper extends RestDocsHelper {
 
-    public RestDocumentationResultHandler createAddBoardLikeDocument(RestDocumentationResultHandler restDocs) {
+    private final RestDocumentationResultHandler restDocs;
+
+    public BoardLikeRestDocsHelper(RestDocumentationResultHandler restDocs) {
+        this.restDocs = restDocs;
+    }
+
+    public RestDocumentationResultHandler createAddBoardLikeDocument() {
         return restDocs.document(
                 pathParameters(parameterWithName("id").description("게시글 ID")),
                 responseFields(createResponseResultDescriptor())
         );
     }
 
-    public ResultHandler createGetUserLikedBoardsSuccessDocument(RestDocumentationResultHandler restDocs) {
+    public ResultHandler createGetUserLikedBoardsSuccessDocument() {
         return restDocs.document(
-                queryParameters(
-                        parameterWithName("page").description("페이지번호")
-                ),
-                responseFields(
-                        createPageFieldsDescriptor(createContentsFieldDescriptor())
-                )
+                queryParameters(parameterWithName("page").description("페이지번호")),
+                responseFields(createPageFieldsDescriptor(createContentsFieldDescriptor()))
         );
     }
 
@@ -45,9 +47,7 @@ public class BoardLikeRestDocsHelper extends RestDocsHelper {
         };
     }
 
-    public ResultHandler createGetUserLikedBoardsFailedDocument(RestDocumentationResultHandler restDocs) {
-        return restDocs.document(
-                responseFields(createResponseResultDescriptor())
-        );
+    public ResultHandler createGetUserLikedBoardsFailedDocument() {
+        return restDocs.document(responseFields(createResponseResultDescriptor()));
     }
 }
