@@ -95,20 +95,20 @@ include::{snippets}/search-boards/search-boards-member-not-found/response-body.a
 
 === 내 게시글 검색
 ==== CURL Request
-include::{snippets}/search-board-by-status/search-boards-by-status-success/curl-request.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-success/curl-request.adoc[]
 
 ==== Http Request
-include::{snippets}/search-board-by-status/search-boards-by-status-success/http-request.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-success/http-request.adoc[]
 
 ==== Query Parameters
-include::{snippets}/search-board-by-status/search-boards-by-status-success/query-parameters.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-success/query-parameters.adoc[]
 
 ==== Response Body (200 - 성공)
-include::{snippets}/search-board-by-status/search-boards-by-status-success/response-fields.adoc[]
-include::{snippets}/search-board-by-status/search-boards-by-status-success/response-body.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-success/response-fields.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-success/response-body.adoc[]
 
 ==== Response Body (401 - 존재하지 않는 사용자)
-include::{snippets}/search-board-by-status/search-boards-by-status-fail-member-not-found/response-body.adoc[]
+include::{snippets}/search-my-boards/search-my-boards-fail-member-not-found/response-body.adoc[]
 
 '''
 
@@ -166,16 +166,16 @@ include::{snippets}/delete-board/delete-board-fail-member-is-not-writer/response
 
 === 임시저장한 게시글 조회
 ==== CURL Request
-include::{snippets}/tmp-board-detail/board-detail-success/curl-request.adoc[]
+include::{snippets}/get-tmp-board-detail/get-tmp-board-detail-success/curl-request.adoc[]
 
 ==== Http Request
-include::{snippets}/tmp-board-detail/board-detail-success/http-request.adoc[]
+include::{snippets}/get-tmp-board-detail/get-tmp-board-detail-success/http-request.adoc[]
 
 ==== Response Body (200 - 성공)
-include::{snippets}/tmp-board-detail/board-detail-success/response-fields.adoc[]
-include::{snippets}/tmp-board-detail/board-detail-success/response-body.adoc[]
+include::{snippets}/get-tmp-board-detail/get-tmp-board-detail-success/response-fields.adoc[]
+include::{snippets}/get-tmp-board-detail/get-tmp-board-detail-success/response-body.adoc[]
 
 ==== Response Body (401 - 존재하지 않는 사용자)
-include::{snippets}/tmp-board-detail/board-detail-fail-member-not-found/response-fields.adoc[]
-include::{snippets}/tmp-board-detail/board-detail-fail-member-not-found/response-body.adoc[]
+include::{snippets}/get-tmp-board-detail/get-tmp-board-detail-fail-member-not-found/response-fields.adoc[]
+include::{snippets}/get-board-detail/board-detail-board-not-found/response-body.adoc[]
 
