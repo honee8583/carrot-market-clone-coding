@@ -13,19 +13,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeDtoFactory;
-import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeRequestHelper;
-import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeRestDocsHelper;
 import com.carrot.carrotmarketclonecoding.board.helper.boardlike.BoardLikeTestHelper;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardLikeServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberAlreadyLikedBoardException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
-import com.carrot.carrotmarketclonecoding.util.RestDocsConfig;
-import com.carrot.carrotmarketclonecoding.util.RestDocsHelper;
 import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,22 +33,23 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-@Import(value = {RestDocsHelper.class,
-        RestDocsTestUtil.class,
-        RestDocsConfig.class,
-        BoardLikeRequestHelper.class,
+@Import(value = {
         BoardLikeTestHelper.class,
-        BoardLikeRestDocsHelper.class,
-        BoardLikeDtoFactory.class})
+        BoardLikeDtoFactory.class
+})
 @WithCustomMockUser
 @WebMvcTest(controllers = BoardLikeController.class)
 class BoardLikeControllerTest extends RestDocsTestUtil {
 
-    @Autowired
     private BoardLikeTestHelper testHelper;
 
     @MockBean
     private BoardLikeServiceImpl boardLikeService;
+
+    @BeforeEach
+    public void setUp() {
+        this.testHelper = new BoardLikeTestHelper(mvc, restDocs);
+    }
 
     @Nested
     @DisplayName(ADD_BOARD_LIKE_CONTROLLER_TEST)
@@ -73,7 +71,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
 
             // then
 
-            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
+            testHelper.assertLikeBoard(resultFields);
         }
 
         @Test
@@ -91,7 +89,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
             doThrow(BoardNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
+            testHelper.assertLikeBoard(resultFields);
         }
 
         @Test
@@ -109,7 +107,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
             doThrow(MemberNotFoundException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
+            testHelper.assertLikeBoard(resultFields);
         }
 
         @Test
@@ -127,7 +125,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
             doThrow(MemberAlreadyLikedBoardException.class).when(boardLikeService).add(anyLong(), anyLong());
 
             // then
-            testHelper.assertLikeBoard(mvc, resultFields, restDocs);
+            testHelper.assertLikeBoard(resultFields);
         }
     }
 
@@ -158,7 +156,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
             when(boardLikeService.getMemberLikedBoards(anyLong(), any())).thenReturn(result);
 
             // then
-            testHelper.assertGetUserLikedBoardsSuccess(mvc, resultFields, restDocs);
+            testHelper.assertGetUserLikedBoardsSuccess(resultFields);
         }
 
         @Test
@@ -176,7 +174,7 @@ class BoardLikeControllerTest extends RestDocsTestUtil {
             doThrow(MemberNotFoundException.class).when(boardLikeService).getMemberLikedBoards(anyLong(), any());
 
             // then
-            testHelper.assertGetUserLikedBoardsFailed(mvc, resultFields, restDocs);
+            testHelper.assertGetUserLikedBoardsFailed(resultFields);
         }
     }
 }
