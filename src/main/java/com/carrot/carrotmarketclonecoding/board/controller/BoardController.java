@@ -60,7 +60,7 @@ public class BoardController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(@PathVariable("id") Long boardId, HttpServletRequest request) {
-        BoardDetailResponseDto boardDetail = boardService.detail(boardId, request);
+        BoardDetailResponseDto boardDetail = boardService.getBoardDetail(boardId, request);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_DETAIL_SUCCESS.getMessage(), boardDetail));
@@ -69,7 +69,7 @@ public class BoardController {
     @GetMapping("/tmp")
     public ResponseEntity<?> tmpDetail(@AuthenticationPrincipal LoginUser loginUser) {
         Long authId = Long.parseLong(loginUser.getUsername());
-        BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(authId);
+        BoardDetailResponseDto boardDetail = boardService.getTmpBoardDetail(authId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, BOARD_GET_TMP_SUCCESS.getMessage(), boardDetail));

@@ -203,7 +203,7 @@ class BoardControllerTest extends RestDocsTestUtil {
                     .build();
 
             // when
-            when(boardService.detail(anyLong(), any())).thenReturn(response);
+            when(boardService.getBoardDetail(anyLong(), any())).thenReturn(response);
 
             // then
             testHelper.assertGetBoardDetailSuccess(resultFields, "$.data.id", boardId.intValue());
@@ -221,7 +221,7 @@ class BoardControllerTest extends RestDocsTestUtil {
                     .build();
 
             // when
-            when(boardService.detail(anyLong(), any())).thenThrow(new BoardNotFoundException());
+            when(boardService.getBoardDetail(anyLong(), any())).thenThrow(new BoardNotFoundException());
 
             // then
             testHelper.assertGetBoardDetailFailed(resultFields);
@@ -495,7 +495,7 @@ class BoardControllerTest extends RestDocsTestUtil {
                     .build();
 
             // when
-            when(boardService.tmpBoardDetail(anyLong())).thenReturn(response);
+            when(boardService.getTmpBoardDetail(anyLong())).thenReturn(response);
 
             // then
             testHelper.assertGetTmpBoardDetailSuccess(resultFields, "$.data.id", response.getId().intValue());
@@ -513,7 +513,7 @@ class BoardControllerTest extends RestDocsTestUtil {
                     .build();
 
             // when
-            when(boardService.tmpBoardDetail(anyLong())).thenReturn(null);
+            when(boardService.getTmpBoardDetail(anyLong())).thenReturn(null);
 
             // then
             testHelper.assertTmpBoardDetailFailed(resultFields);
@@ -531,7 +531,7 @@ class BoardControllerTest extends RestDocsTestUtil {
                     .build();
 
             // when
-            doThrow(MemberNotFoundException.class).when(boardService).tmpBoardDetail(anyLong());
+            doThrow(MemberNotFoundException.class).when(boardService).getTmpBoardDetail(anyLong());
 
             // then
             testHelper.assertTmpBoardDetailFailed(resultFields);

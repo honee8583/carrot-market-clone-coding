@@ -236,7 +236,7 @@ class BoardServiceTest {
             when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(true);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, request);
+            BoardDetailResponseDto result = boardService.getBoardDetail(boardId, request);
 
             // then
             // todo
@@ -265,7 +265,7 @@ class BoardServiceTest {
             when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(false);
 
             // when
-            BoardDetailResponseDto result = boardService.detail(boardId, request);
+            BoardDetailResponseDto result = boardService.getBoardDetail(boardId, request);
 
             // then
             assertThat(result.getVisit()).isEqualTo(10);
@@ -279,7 +279,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.detail(1L, request))
+            assertThatThrownBy(() -> boardService.getBoardDetail(1L, request))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
@@ -664,7 +664,7 @@ class BoardServiceTest {
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.of(mockBoard));
 
             // when
-            BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(memberId);
+            BoardDetailResponseDto boardDetail = boardService.getTmpBoardDetail(memberId);
 
             // then
             assertThat(boardDetail.getId()).isEqualTo(1L);
@@ -680,7 +680,7 @@ class BoardServiceTest {
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.empty());
 
             // when
-            BoardDetailResponseDto boardDetail = boardService.tmpBoardDetail(memberId);
+            BoardDetailResponseDto boardDetail = boardService.getTmpBoardDetail(memberId);
 
             // then
             assertThat(boardDetail).isNull();
@@ -694,7 +694,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.tmpBoardDetail(1L))
+            assertThatThrownBy(() -> boardService.getTmpBoardDetail(1L))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }

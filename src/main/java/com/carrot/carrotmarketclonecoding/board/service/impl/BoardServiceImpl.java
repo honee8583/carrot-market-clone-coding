@@ -70,9 +70,8 @@ public class BoardServiceImpl implements BoardService {
         return board.getId();
     }
 
-    // TODO method name -> getBoardDetail
     @Override
-    public BoardDetailResponseDto detail(Long boardId, HttpServletRequest request) {
+    public BoardDetailResponseDto getBoardDetail(Long boardId, HttpServletRequest request) {
         Board board = boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         int like = boardLikeRepository.countByBoard(board);
 
@@ -89,10 +88,9 @@ public class BoardServiceImpl implements BoardService {
         return BoardDetailResponseDto.createBoardDetail(board, like);
     }
 
-    // TODO method name -> getTmpBoardDetail
     @Override
     @Transactional(readOnly = true)
-    public BoardDetailResponseDto tmpBoardDetail(Long authId) {
+    public BoardDetailResponseDto getTmpBoardDetail(Long authId) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         // TODO 임시게시글이 없을 경우 null을 반환하지 않고 예외를 발생
         Optional<Board> board = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member);
