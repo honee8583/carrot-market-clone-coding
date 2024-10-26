@@ -1,5 +1,7 @@
 package com.carrot.carrotmarketclonecoding.board.service.impl;
 
+import static com.carrot.carrotmarketclonecoding.board.domain.QBoard.board;
+
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardSearchRequestDto;
@@ -19,6 +21,7 @@ import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.TmpBoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
@@ -30,7 +33,6 @@ import com.carrot.carrotmarketclonecoding.notification.service.NotificationServi
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,14 +94,9 @@ public class BoardServiceImpl implements BoardService {
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getTmpBoardDetail(Long authId) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
-        // TODO 임시게시글이 없을 경우 null을 반환하지 않고 예외를 발생
-        Optional<Board> board = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member);
-
-        if (board.isPresent()) {
-            return BoardDetailResponseDto.createBoardDetail(board.get(), 0);
-        }
-
-        return null;
+        Board tmpBoard = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member)
+                .orElseThrow(TmpBoardNotFoundException::new);
+        return BoardDetailResponseDto.createBoardDetail(tmpBoard, 0);
     }
 
     @Override
