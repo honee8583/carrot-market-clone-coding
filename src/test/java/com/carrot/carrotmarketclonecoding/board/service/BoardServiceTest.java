@@ -29,6 +29,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundExceptio
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.TmpBoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
@@ -222,7 +223,7 @@ class BoardServiceTest {
 
     @Nested
     @DisplayName(BOARD_DETAIL_SERVICE_TEST)
-    class BoardDetail {
+    class GetBoardDetail {
 
         @Test
         @DisplayName(SUCCESS_INCLUDE_INCREASE_VISIT)
@@ -337,7 +338,7 @@ class BoardServiceTest {
 
     @Nested
     @DisplayName(BOARD_MY_DETAIL_SERVICE_TEST)
-    class MyBoards {
+    class SearchMyBoards {
 
         @Test
         @DisplayName(SUCCESS)
@@ -648,7 +649,7 @@ class BoardServiceTest {
 
     @Nested
     @DisplayName(BOARD_GET_TMP_SERVICE_TEST)
-    class TmpBoardDetail {
+    class GetTmpBoardDetail {
 
         @Test
         @DisplayName(SUCCESS)
@@ -671,8 +672,8 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName(SUCCESS_NO_TMP_BOARDS)
-        void tmpBoardDetailSuccessNoTmpBoards() {
+        @DisplayName(FAIL_TMP_BOARDS_NOT_FOUND)
+        void tmpBoardDetailFailedNoTmpBoards() {
             // given
             Long memberId = 1L;
             Member mockMember = Member.builder().id(memberId).build();
@@ -680,10 +681,10 @@ class BoardServiceTest {
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.empty());
 
             // when
-            BoardDetailResponseDto boardDetail = boardService.getTmpBoardDetail(memberId);
-
             // then
-            assertThat(boardDetail).isNull();
+            assertThatThrownBy(() -> boardService.getTmpBoardDetail(memberId))
+                    .isInstanceOf(TmpBoardNotFoundException.class)
+                    .hasMessage(TMP_BOARD_NOT_FOUND.getMessage());
         }
 
         @Test

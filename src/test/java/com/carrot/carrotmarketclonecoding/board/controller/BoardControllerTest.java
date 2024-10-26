@@ -23,6 +23,7 @@ import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundExceptio
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
+import com.carrot.carrotmarketclonecoding.common.exception.TmpBoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
@@ -502,18 +503,18 @@ class BoardControllerTest extends RestDocsTestUtil {
         }
 
         @Test
-        @DisplayName(SUCCESS_NO_TMP_BOARDS)
-        void getTmpBoardDetailSuccessNotTmpBoard() throws Exception {
+        @DisplayName(FAIL_TMP_BOARDS_NOT_FOUND)
+        void getTmpBoardDetailFailedTmpBoardNotFound() throws Exception {
             // given
             ResultFields resultFields = ResultFields.builder()
-                    .resultMatcher(status().isOk())
-                    .status(200)
-                    .result(true)
-                    .message(BOARD_GET_TMP_SUCCESS.getMessage())
+                    .resultMatcher(status().isBadRequest())
+                    .status(400)
+                    .result(false)
+                    .message(TMP_BOARD_NOT_FOUND.getMessage())
                     .build();
 
             // when
-            when(boardService.getTmpBoardDetail(anyLong())).thenReturn(null);
+            doThrow(TmpBoardNotFoundException.class).when(boardService).getTmpBoardDetail(anyLong());
 
             // then
             testHelper.assertTmpBoardDetailFailed(resultFields);
