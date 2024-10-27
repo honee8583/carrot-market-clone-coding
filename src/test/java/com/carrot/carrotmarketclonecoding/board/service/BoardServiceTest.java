@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
-import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardNotificationResponseDto;
+import com.carrot.carrotmarketclonecoding.board.helper.board.BoardDtoFactory;
 import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.SearchOrder;
@@ -32,20 +32,11 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.exception.TmpBoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
-import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
-import com.carrot.carrotmarketclonecoding.keyword.repository.KeywordRepository;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
-import com.carrot.carrotmarketclonecoding.notification.domain.enums.NotificationType;
-import com.carrot.carrotmarketclonecoding.notification.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,12 +44,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -92,13 +83,13 @@ class BoardServiceTest {
     private SearchKeywordRedisService searchKeywordRedisService;
 
     @Mock
-    private KeywordRepository keywordRepository;
-
-    @Mock
-    private NotificationService notificationService;
+    private BoardNotificationService boardNotificationService;
 
     @Mock
     private HttpServletRequest request;
+
+    @Spy
+    private BoardDtoFactory dtoFactory;
 
     @Nested
     @DisplayName(BOARD_REGISTER_SERVICE_TEST)
@@ -117,21 +108,9 @@ class BoardServiceTest {
             Category mockCategory = Category.builder().id(1L).build();
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
-            Set<Keyword> keywords = new HashSet<>(Arrays.asList(
-                    Keyword.builder()
-                            .member(Member.builder().authId(2222L).build())
-                            .name("keyword1")
-                            .build(),
-                    Keyword.builder()
-                            .member(Member.builder().authId(3333L).build())
-                            .name("keyword2")
-                            .build()
-            ));
-            when(keywordRepository.findByNameIn(anySet())).thenReturn(keywords);
-
             // when
-            BoardRegisterRequestDto boardRegisterRequestDto = createRegisterRequestDto();
-            MultipartFile[] pictures = createFiles(2);
+            BoardRegisterRequestDto boardRegisterRequestDto = dtoFactory.createRegisterRequestDto();
+            MultipartFile[] pictures = dtoFactory.createFiles(2);
             Long registerId = boardService.register(1111L, boardRegisterRequestDto, pictures, false);
 
             // then
@@ -142,14 +121,8 @@ class BoardServiceTest {
 
             verify(boardPictureService)
                     .uploadPicturesIfExistAndUnderLimit(eq(pictures), eq(capturedBoard));
-
-            ArgumentCaptor<BoardNotificationResponseDto> notificationCaptor = ArgumentCaptor
-                    .forClass(BoardNotificationResponseDto.class);
-            verify(notificationService, times(2))
-                    .add(anyLong(), any(NotificationType.class), notificationCaptor.capture());
-            BoardNotificationResponseDto notification = notificationCaptor.getValue();
-            assertThat(notification.getTitle()).isEqualTo(capturedBoard.getTitle());
-            assertThat(notification.getPrice()).isEqualTo(capturedBoard.getPrice());
+            verify(boardNotificationService, times(1))
+                    .sendKeywordNotification(boardRegisterRequestDto, capturedBoard);
         }
 
         @Test
@@ -173,7 +146,7 @@ class BoardServiceTest {
             // then
             BoardRegisterRequestDto boardRegisterRequestDto = new BoardRegisterRequestDto();
             boardRegisterRequestDto.setCategoryId(categoryId);
-            assertThatThrownBy(() -> boardService.register(memberId, boardRegisterRequestDto, createFiles(20), false))
+            assertThatThrownBy(() -> boardService.register(memberId, boardRegisterRequestDto, dtoFactory.createFiles(20), false))
                     .isInstanceOf(FileUploadLimitException.class)
                     .hasMessage(FILE_UPLOAD_LIMIT.getMessage());
         }
@@ -189,7 +162,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(memberId, createRegisterRequestDto(), createFiles(2), false))
+            assertThatThrownBy(() -> boardService.register(memberId, dtoFactory.createRegisterRequestDto(), dtoFactory.createFiles(2), false))
                     .isInstanceOf(CategoryNotFoundException.class)
                     .hasMessage(CATEGORY_NOT_FOUND.getMessage());
         }
@@ -203,21 +176,9 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.register(memberId, createRegisterRequestDto(), createFiles(2), false))
+            assertThatThrownBy(() -> boardService.register(memberId, dtoFactory.createRegisterRequestDto(), dtoFactory.createFiles(2), false))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
-        }
-
-        private BoardRegisterRequestDto createRegisterRequestDto() {
-            return BoardRegisterRequestDto.builder()
-                    .title("title")
-                    .categoryId(1L)
-                    .method(Method.SELL)
-                    .price(200000)
-                    .suggest(true)
-                    .description("description")
-                    .place("place")
-                    .build();
         }
     }
 
@@ -230,8 +191,10 @@ class BoardServiceTest {
         void boardDetailSuccess() {
             // given
             Long boardId = 1L;
-            List<BoardPicture> mockPictures = createBoardPictures(2);
-            Board mockBoard = createMockBoard(boardId, 1L, mockPictures);
+            Member mockMember = Member.builder().id(1L).nickname("member").build();
+            Category mockCategory = Category.builder().id(1L).name("category").build();
+            List<BoardPicture> mockPictures = dtoFactory.createBoardPictures(2);
+            Board mockBoard = dtoFactory.createMockBoard(boardId, mockMember, mockCategory, mockPictures);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
             when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(true);
@@ -240,18 +203,21 @@ class BoardServiceTest {
             BoardDetailResponseDto result = boardService.getBoardDetail(boardId, request);
 
             // then
-            // todo
-            assertThat(result.getId()).isEqualTo(boardId);
-            assertThat(result.getTitle()).isEqualTo("title");
-            assertThat(result.getWriter()).isEqualTo("member");
-            assertThat(result.getCategory()).isEqualTo("category");
-            assertThat(result.getPrice()).isEqualTo(20000);
-            assertThat(result.getMethod()).isEqualTo(Method.SELL);
-            assertThat(result.getSuggest()).isEqualTo(false);
-            assertThat(result.getDescription()).isEqualTo("description");
-            assertThat(result.getPlace()).isEqualTo("place");
-            assertThat(result.getVisit()).isEqualTo(11);
-            assertThat(result.getStatus()).isEqualTo(Status.SELL);
+            assertBoardDetail(result, boardId);
+        }
+
+        private void assertBoardDetail(BoardDetailResponseDto boardDetail, Long boardId) {
+            assertThat(boardDetail.getId()).isEqualTo(boardId);
+            assertThat(boardDetail.getTitle()).isEqualTo("title");
+            assertThat(boardDetail.getWriter()).isEqualTo("member");
+            assertThat(boardDetail.getCategory()).isEqualTo("category");
+            assertThat(boardDetail.getPrice()).isEqualTo(20000);
+            assertThat(boardDetail.getMethod()).isEqualTo(Method.SELL);
+            assertThat(boardDetail.getSuggest()).isEqualTo(false);
+            assertThat(boardDetail.getDescription()).isEqualTo("description");
+            assertThat(boardDetail.getPlace()).isEqualTo("place");
+            assertThat(boardDetail.getVisit()).isEqualTo(11);
+            assertThat(boardDetail.getStatus()).isEqualTo(Status.SELL);
         }
 
         @Test
@@ -259,8 +225,10 @@ class BoardServiceTest {
         void boardDetailSuccessVisitCountNotIncreased() {
             // given
             Long boardId = 1L;
-            List<BoardPicture> mockPictures = createBoardPictures(2);
-            Board mockBoard = createMockBoard(1L, 1L, mockPictures);
+            Member mockMember = Member.builder().nickname("member").build();
+            Category mockCategory = Category.builder().name("category").build();
+            List<BoardPicture> mockPictures = dtoFactory.createBoardPictures(2);
+            Board mockBoard = dtoFactory.createMockBoard(boardId, mockMember, mockCategory, mockPictures);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
             when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(false);
@@ -298,12 +266,8 @@ class BoardServiceTest {
             Member mockMember = Member.builder().id(memberId).build();
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
-            List<BoardSearchResponseDto> boardSearchResponses = Arrays.asList(
-                    new BoardSearchResponseDto(),
-                    new BoardSearchResponseDto()
-            );
             Pageable pageable = PageRequest.of(0, 10);
-            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(boardSearchResponses, pageable, 2);
+            Page<BoardSearchResponseDto> searchResult = new PageImpl<>(dtoFactory.createBoardSearchResponseDtos(2), pageable, 2);
             when(boardRepository.findAllBySearchRequestDto(any(), any())).thenReturn(searchResult);
 
             // when
@@ -346,10 +310,7 @@ class BoardServiceTest {
             // given
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mock(Member.class)));
 
-            List<BoardSearchResponseDto> boardSearchResponses = Arrays.asList(
-                    new BoardSearchResponseDto(),
-                    new BoardSearchResponseDto()
-            );
+            List<BoardSearchResponseDto> boardSearchResponses = dtoFactory.createBoardSearchResponseDtos(2);
             Pageable pageable = PageRequest.of(0, 10);
             Page<BoardSearchResponseDto> searchResult = new PageImpl<>(boardSearchResponses, pageable, 2);
             when(boardRepository.findAllByStatusOrHide(any(), any(), any())).thenReturn(searchResult);
@@ -385,14 +346,15 @@ class BoardServiceTest {
         void updateBoardWithDeleteTmpBoardsSuccess() {
             // given
             Long memberId = 1L;
-            Member mockMember = Member.builder().id(1L).build();
+            Member mockMember = Member.builder().id(1L).authId(1111L).build();
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             Long boardId = 1L;
+            Category mockCategory = Category.builder().id(2L).build();
             Board mockBoard = Board.builder()
                     .id(boardId)
                     .member(mockMember)
-                    .category(Category.builder().id(1L).build())
+                    .category(mockCategory)
                     .method(Method.SHARE)
                     .price(10000)
                     .suggest(true)
@@ -402,13 +364,12 @@ class BoardServiceTest {
                     .build();
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
 
-            Category mockCategory = Category.builder().id(2L).build();
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
             // when
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
+            BoardUpdateRequestDto updateRequestDto = dtoFactory.createUpdateRequestDto();
             updateRequestDto.setMethod(Method.SHARE);
-            MultipartFile[] newPictures = createFiles(2);
+            MultipartFile[] newPictures = dtoFactory.createFiles(2);
             boardService.update(boardId, memberId, updateRequestDto, newPictures);
 
             // then
@@ -418,8 +379,8 @@ class BoardServiceTest {
             assertThat(mockBoard.getPrice()).isEqualTo(0);
             assertThat(mockBoard.getCategory().getId()).isEqualTo(2L);
             assertThat(mockBoard.getSuggest()).isEqualTo(false);
-            assertThat(mockBoard.getDescription()).isEqualTo("updated description");
-            assertThat(mockBoard.getPlace()).isEqualTo("updated place");
+            assertThat(mockBoard.getDescription()).isEqualTo("It's my MacBook description");
+            assertThat(mockBoard.getPlace()).isEqualTo("Amsa");
         }
 
         @Test
@@ -432,23 +393,13 @@ class BoardServiceTest {
 
             Category mockCategory = Category.builder().id(1L).build();
             Long boardId = 1L;
-            Board mockBoard = Board.builder()
-                    .id(boardId)
-                    .member(mockMember)
-                    .category(mockCategory)
-                    .method(Method.SELL)
-                    .price(10000)
-                    .suggest(true)
-                    .description("description")
-                    .place("place")
-                    .tmp(false)
-                    .build();
+            Board mockBoard = dtoFactory.createMockBoard(boardId, mockMember, mockCategory, null);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
             // when
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
-            boardService.update(boardId, memberId, updateRequestDto, createFiles(2));
+            BoardUpdateRequestDto updateRequestDto = dtoFactory.createUpdateRequestDto();
+            boardService.update(boardId, memberId, updateRequestDto, dtoFactory.createFiles(2));
 
             // then
             verify(boardRepository, times(0)).deleteAllByMemberAndTmpIsTrueAndIdIsNot(mockMember, boardId);
@@ -462,7 +413,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(1L, 1L, createUpdateRequestDto(), createFiles(2)))
+            assertThatThrownBy(() -> boardService.update(1L, 1L, dtoFactory.createUpdateRequestDto(), dtoFactory.createFiles(2)))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
@@ -477,7 +428,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(1L, memberId, createUpdateRequestDto(), createFiles(2)))
+            assertThatThrownBy(() -> boardService.update(1L, memberId, dtoFactory.createUpdateRequestDto(), dtoFactory.createFiles(2)))
                     .isInstanceOf(BoardNotFoundException.class)
                     .hasMessage(BOARD_NOT_FOUND.getMessage());
         }
@@ -491,15 +442,12 @@ class BoardServiceTest {
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             Long boardId = 1L;
-            Board mockBoard = Board.builder()
-                    .id(boardId)
-                    .member(Member.builder().id(2L).build())
-                    .build();
+            Board mockBoard = dtoFactory.createMockBoard(boardId, Member.builder().id(2L).build(), mock(Category.class), null);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(boardId, memberId, createUpdateRequestDto(), createFiles(2)))
+            assertThatThrownBy(() -> boardService.update(boardId, memberId, dtoFactory.createUpdateRequestDto(), dtoFactory.createFiles(2)))
                     .isInstanceOf(UnauthorizedAccessException.class)
                     .hasMessage(UNAUTHORIZED_ACCESS.getMessage());
         }
@@ -523,7 +471,7 @@ class BoardServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> boardService.update(boardId, memberId, createUpdateRequestDto(), createFiles(2)))
+            assertThatThrownBy(() -> boardService.update(boardId, memberId, dtoFactory.createUpdateRequestDto(), dtoFactory.createFiles(2)))
                     .isInstanceOf(CategoryNotFoundException.class)
                     .hasMessage(CATEGORY_NOT_FOUND.getMessage());
         }
@@ -536,20 +484,14 @@ class BoardServiceTest {
             Member mockMember = Member.builder().id(memberId).build();
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
-            Long categoryId = 1L;
-            Category mockCategory = Category.builder().id(categoryId).build();
+            Category mockCategory = Category.builder().id(1L).build();
             Long boardId = 1L;
-            Board mockBoard = Board.builder()
-                    .id(boardId)
-                    .member(mockMember)
-                    .category(mockCategory)
-                    .tmp(false)
-                    .build();
+            Board mockBoard = dtoFactory.createMockBoard(boardId, mockMember, mockCategory, null);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mockCategory));
 
-            BoardUpdateRequestDto updateRequestDto = createUpdateRequestDto();
-            MultipartFile[] newPictures = createFiles(20);
+            BoardUpdateRequestDto updateRequestDto = dtoFactory.createUpdateRequestDto();
+            MultipartFile[] newPictures = dtoFactory.createFiles(20);
             doThrow(FileUploadLimitException.class).when(boardPictureService).uploadPicturesIfExistAndUnderLimit(newPictures, mockBoard);
 
             // when
@@ -557,19 +499,6 @@ class BoardServiceTest {
             assertThatThrownBy(() -> boardService.update(boardId, memberId, updateRequestDto, newPictures))
                     .isInstanceOf(FileUploadLimitException.class)
                     .hasMessage(FILE_UPLOAD_LIMIT.getMessage());
-        }
-
-        private BoardUpdateRequestDto createUpdateRequestDto() {
-            return BoardUpdateRequestDto.builder()
-                    .title("updated title")
-                    .categoryId(2L)
-                    .method(Method.SELL)
-                    .price(20000)
-                    .suggest(false)
-                    .description("updated description")
-                    .place("updated place")
-                    .removePictures(new Long[]{1L, 2L, 3L})
-                    .build();
         }
     }
 
@@ -660,8 +589,8 @@ class BoardServiceTest {
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             Long boardId = 1L;
-            List<BoardPicture> mockPictures = createBoardPictures(2);
-            Board mockBoard = createMockBoard(boardId, memberId, mockPictures);
+            List<BoardPicture> mockPictures = dtoFactory.createBoardPictures(2);
+            Board mockBoard = dtoFactory.createMockBoard(boardId, mockMember, mock(Category.class), mockPictures);
             when(boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(any())).thenReturn(Optional.of(mockBoard));
 
             // when
@@ -699,42 +628,5 @@ class BoardServiceTest {
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
-    }
-
-    private MultipartFile[] createFiles(int size) {
-        return IntStream.range(0, size)
-                .mapToObj(i -> new MockMultipartFile(
-                        "file" + i,
-                        "file" + i + ".png",
-                        "text/png",
-                        ("Picture" + i).getBytes()
-                ))
-                .toArray(MultipartFile[]::new);
-    }
-
-    private List<BoardPicture> createBoardPictures(int size) {
-        List<BoardPicture> boardPictures = new ArrayList<>();
-        for (long i = 0; i < size; i++) {
-            boardPictures.add(BoardPicture.builder().id(i + 1).build());
-        }
-        return boardPictures;
-    }
-
-    private Board createMockBoard(Long boardId, Long memberId, List<BoardPicture> boardPictures) {
-        return Board.builder()
-                .id(boardId)
-                .title("title")
-                .member(Member.builder().id(memberId).nickname("member").build())
-                .category(Category.builder().id(1L).name("category").build())
-                .method(Method.SELL)
-                .price(20000)
-                .suggest(false)
-                .description("description")
-                .place("place")
-                .visit(10)
-                .status(Status.SELL)
-                .tmp(false)
-                .boardPictures(boardPictures)
-                .build();
     }
 }
