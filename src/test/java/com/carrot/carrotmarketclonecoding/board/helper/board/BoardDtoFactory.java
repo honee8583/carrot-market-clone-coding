@@ -1,5 +1,7 @@
 package com.carrot.carrotmarketclonecoding.board.helper.board;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
+import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Method;
 import com.carrot.carrotmarketclonecoding.board.domain.enums.Status;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
@@ -7,16 +9,20 @@ import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateR
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.validation.BoardRegisterValidationMessage.MESSAGE;
+import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
+import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 @TestComponent
@@ -129,5 +135,42 @@ public class BoardDtoFactory {
 
     public PageResponseDto<BoardSearchResponseDto> createBoardSearchResponse(int page, int size, int total, List<BoardSearchResponseDto> searchResponseDtos) {
         return new PageResponseDto<>(new PageImpl<>(searchResponseDtos, PageRequest.of(page, size), total));
+    }
+
+    public MultipartFile[] createFiles(int size) {
+        return IntStream.range(0, size)
+                .mapToObj(i -> new MockMultipartFile(
+                        "file" + i,
+                        "file" + i + ".png",
+                        "text/png",
+                        ("Picture" + i).getBytes()
+                ))
+                .toArray(MultipartFile[]::new);
+    }
+
+    public List<BoardPicture> createBoardPictures(int size) {
+        List<BoardPicture> boardPictures = new ArrayList<>();
+        for (long i = 0; i < size; i++) {
+            boardPictures.add(BoardPicture.builder().id(i + 1).build());
+        }
+        return boardPictures;
+    }
+
+    public Board createMockBoard(Long boardId, Member mockMember, Category mockCategory, List<BoardPicture> boardPictures) {
+        return Board.builder()
+                .id(boardId)
+                .title("title")
+                .member(mockMember)
+                .category(mockCategory)
+                .method(Method.SELL)
+                .price(20000)
+                .suggest(false)
+                .description("description")
+                .place("place")
+                .visit(10)
+                .status(Status.SELL)
+                .tmp(false)
+                .boardPictures(boardPictures)
+                .build();
     }
 }

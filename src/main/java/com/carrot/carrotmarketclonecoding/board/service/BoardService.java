@@ -14,9 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface BoardService {
     Long register(Long authId, BoardRegisterRequestDto registerRequestDto, MultipartFile[] pictures, boolean tmp);
 
-    BoardDetailResponseDto detail(Long boardId, HttpServletRequest request);
+    BoardDetailResponseDto getBoardDetail(Long boardId, HttpServletRequest request);
 
-    BoardDetailResponseDto tmpBoardDetail(Long memberId);
+    BoardDetailResponseDto getTmpBoardDetail(Long memberId);
 
     PageResponseDto<BoardSearchResponseDto> search(Long authId, BoardSearchRequestDto searchRequestDto, Pageable pageable);
 
