@@ -1,15 +1,24 @@
 package com.carrot.carrotmarketclonecoding.util;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.test.web.servlet.ResultHandler;
 
 @TestComponent
 public class RestDocsHelper {
+
+    protected ResultHandler createResponseResultDocument(RestDocumentationResultHandler restDocs) {
+        return restDocs.document(
+                responseFields(createResponseResultDescriptor())
+        );
+    }
 
     public FieldDescriptor[] createPageFieldsDescriptor(FieldDescriptor[] contentsDescriptors) {
         List<FieldDescriptor> fieldDescriptors = new ArrayList<>(Arrays.asList(

@@ -48,6 +48,6 @@ public class BoardLikeRestDocsHelper extends RestDocsHelper {
     }
 
     public ResultHandler createGetUserLikedBoardsFailedDocument() {
-        return restDocs.document(responseFields(createResponseResultDescriptor()));
+        return createResponseResultDocument(restDocs);
     }
 }
