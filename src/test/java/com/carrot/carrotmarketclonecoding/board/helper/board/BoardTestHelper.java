@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultHandler;
 
 @Import(value = {
         BoardRequestHelper.class,
@@ -43,7 +44,7 @@ public class BoardTestHelper extends ControllerTestUtil {
     private void assertRegisterBoard(ResultFields resultFields,
                                      MockMultipartFile request,
                                      MockMultipartFile[] pictures,
-                                     RestDocumentationResultHandler restDocs) throws Exception {
+                                     ResultHandler restDocs) throws Exception {
         assertResponseResult(
                 requestHelper.requestRegisterBoard(request, pictures), resultFields)
                 .andExpect(jsonPath("$.data", equalTo(null)))

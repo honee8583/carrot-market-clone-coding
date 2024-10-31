@@ -58,8 +58,8 @@ public class BoardRestDocsHelper extends RestDocsHelper {
         );
     }
 
-    public RestDocumentationResultHandler createCommonResponseDocument() {
-        return restDocs.document(responseFields(createResponseResultDescriptor()));
+    public ResultHandler createCommonResponseDocument() {
+        return createResponseResultDocument(restDocs);
     }
 
     public RestDocumentationResultHandler createRegisterBoardFailedInvalidInputDocument() {
