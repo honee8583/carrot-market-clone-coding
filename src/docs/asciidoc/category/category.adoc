@@ -1,0 +1,14 @@
+== Category API
+
+=== 카테고리 목록 조회
+
+==== CURL Request
+include::{snippets}/category-controller-test/get-all-category/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/category-controller-test/get-all-category/http-request.adoc[]
+
+==== Response Body (200 - 저장 성공)
+정상 응답
+include::{snippets}/category-controller-test/get-all-category/response-fields.adoc[]
+include::{snippets}/category-controller-test/get-all-category/response-body.adoc[]
