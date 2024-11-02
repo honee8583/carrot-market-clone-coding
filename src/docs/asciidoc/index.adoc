@@ -15,3 +15,5 @@ include::board/board.adoc[]
 include::board/boardLike.adoc[]
 
 include::board/searchKeyword.adoc[]
+
+include::category/category.adoc[]
