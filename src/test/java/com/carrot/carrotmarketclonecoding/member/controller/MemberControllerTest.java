@@ -3,104 +3,98 @@ package com.carrot.carrotmarketclonecoding.member.controller;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.PROFILE_DETAIL_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.PROFILE_UPDATE_SUCCESS;
-import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileDetailResponseDto;
+import com.carrot.carrotmarketclonecoding.member.helper.MemberDtoFactory;
+import com.carrot.carrotmarketclonecoding.member.helper.MemberTestHelper;
 import com.carrot.carrotmarketclonecoding.member.service.impl.MemberServiceImpl;
+import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
+import com.carrot.carrotmarketclonecoding.util.ResultFields;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
 
+@Import(value = {
+        MemberDtoFactory.class
+})
 @WithCustomMockUser
 @WebMvcTest(controllers = MemberController.class)
-class MemberControllerTest {
+class MemberControllerTest extends RestDocsTestUtil {
+
+    private MemberTestHelper testHelper;
 
     @Autowired
-    private MockMvc mvc;
+    private MemberDtoFactory dtoFactory;
 
     @MockBean
     private MemberServiceImpl memberService;
+
+    @BeforeEach
+    void setUp() {
+        this.testHelper = new MemberTestHelper(mvc, restDocs);
+    }
 
     @Nested
     @DisplayName("프로필 업데이트 테스트")
     class ProfileUpdate {
 
+        private MockMultipartFile profileImage;
+        private MockMultipartFile profileUpdateRequest;
+
+        @BeforeEach
+        void setUp() throws Exception {
+            profileImage = dtoFactory.createProfileImage();
+            profileUpdateRequest = dtoFactory.createProfileUpdateRequest(dtoFactory.createProfileUpdateRequestDto());
+        }
+
         @Test
         @DisplayName("성공")
         void updateSuccess() throws Exception {
             // given
-            MockMultipartFile profileImage = new MockMultipartFile(
-                    "profileImage",
-                    "picture.png",
-                    MediaType.IMAGE_JPEG_VALUE,
-                    "picture".getBytes());
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isOk())
+                    .status(200)
+                    .result(true)
+                    .message(PROFILE_UPDATE_SUCCESS.getMessage())
+                    .build();
 
             // when
-            doNothing().when(memberService).update(anyLong(), any());
+            doNothing().when(memberService).update(anyLong(), any(), any());
 
             // then
-            mvc.perform(multipart("/profile")
-                            .file(profileImage)
-                            .param("nickname", "newNickname")
-                            .with(request -> {
-                                request.setMethod("PATCH");
-                                return request;
-                            })
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(PROFILE_UPDATE_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertUpdateProfileSuccess(resultFields, profileImage, profileUpdateRequest);
         }
 
         @Test
         @DisplayName("실패 - 사용자가 존재하지 않음")
         void updateFailMemberNotFound() throws Exception {
             // given
-            MockMultipartFile profileImage = new MockMultipartFile(
-                    "profileImage",
-                    "picture.png",
-                    MediaType.IMAGE_JPEG_VALUE,
-                    "picture".getBytes());
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
 
             // when
-            doThrow(MemberNotFoundException.class).when(memberService).update(anyLong(), any());
+            doThrow(MemberNotFoundException.class).when(memberService).update(anyLong(), any(), any());
 
             // then
-            mvc.perform(multipart("/profile")
-                            .file(profileImage)
-                            .param("nickname", "newNickname")
-                            .with(request -> {
-                                request.setMethod("PATCH");
-                                return request;
-                            })
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .contentType(MediaType.MULTIPART_FORM_DATA))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+           testHelper.assertUpdateProfileFail(resultFields, profileImage, profileUpdateRequest);
         }
     }
 
@@ -110,37 +104,39 @@ class MemberControllerTest {
 
         @Test
         @DisplayName("성공")
-        void profileDetailSuccess() throws Exception {
+        void getProfileDetailSuccess() throws Exception {
             // given
             ProfileDetailResponseDto profileDetail = new ProfileDetailResponseDto("profileUrl", "nickname");
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isOk())
+                    .status(200)
+                    .result(true)
+                    .message(PROFILE_DETAIL_SUCCESS.getMessage())
+                    .build();
 
             // when
             when(memberService.detail(anyLong())).thenReturn(profileDetail);
 
             // then
-            mvc.perform(get("/profile"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(PROFILE_DETAIL_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.nickname", equalTo("nickname")))
-                    .andExpect(jsonPath("$.data.profileUrl", equalTo("profileUrl")));
+            testHelper.assertGetProfileDetailSuccess(resultFields);
         }
 
         @Test
         @DisplayName("실패 - 사용자가 존재하지 않음")
-        void profileDetailFailMemberNotFound() throws Exception {
+        void getProfileDetailFailMemberNotFound() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
+
             // when
             doThrow(MemberNotFoundException.class).when(memberService).detail(anyLong());
 
             // then
-            mvc.perform(get("/profile"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertGetProfileDetailFail(resultFields);
         }
     }
 }

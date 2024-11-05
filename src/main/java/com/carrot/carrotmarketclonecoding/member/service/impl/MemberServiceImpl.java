@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -20,13 +21,13 @@ public class MemberServiceImpl implements MemberService {
     private final FileService fileService;
 
     @Override
-    public void update(Long authId, ProfileUpdateRequestDto profileUpdateRequestDto) {
+    public void update(Long authId, MultipartFile profileImage, ProfileUpdateRequestDto profileUpdateRequestDto) {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
 
         fileService.deleteUploadedImage(member.getProfileUrl());
         String profileUrl = null;
-        if (profileUpdateRequestDto.getProfileImage() != null) {
-            profileUrl = fileService.uploadImage(profileUpdateRequestDto.getProfileImage());
+        if (profileImage != null) {
+            profileUrl = fileService.uploadImage(profileImage);
         }
 
         log.debug("new nickname: {}", profileUpdateRequestDto.getNickname());

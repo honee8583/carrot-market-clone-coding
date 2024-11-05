@@ -13,10 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/profile")
@@ -25,9 +26,11 @@ public class MemberController {
     private final MemberService memberService;
 
     @PatchMapping
-    public ResponseEntity<?> update(@AuthenticationPrincipal LoginUser loginUser, @ModelAttribute ProfileUpdateRequestDto profileUpdateRequestDto) {
+    public ResponseEntity<?> update(@AuthenticationPrincipal LoginUser loginUser,
+                                    @RequestPart("profileImage") MultipartFile profileImage,
+                                    @RequestPart("profileUpdateRequest") ProfileUpdateRequestDto profileUpdateRequest) {
         Long authId = Long.parseLong(loginUser.getUsername());
-        memberService.update(authId, profileUpdateRequestDto);
+        memberService.update(authId, profileImage, profileUpdateRequest);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ResponseResult.success(HttpStatus.OK, PROFILE_UPDATE_SUCCESS.getMessage(), null));
