@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,36 +48,41 @@ class MemberServiceTest {
         @DisplayName("성공")
         void updateSuccess() {
             // given
-            Member mockMember = Member.builder()
-                    .authId(1111L)
-                    .nickname("oldNickname")
-                    .profileUrl("oldProfileUrl")
-                    .build();
-
-            ProfileUpdateRequestDto profileUpdateRequestDto = ProfileUpdateRequestDto.builder()
-                    .nickname("newNickname")
-                    .profileImage(new MockMultipartFile(
-                            "file",
-                            "file.png",
-                            "text/png",
-                            ("Picture").getBytes()))
-                    .build();
+            Member mockMember = createMockMember();
+            ProfileUpdateRequestDto profileUpdateRequestDto = new ProfileUpdateRequestDto("newNickname");
+            MockMultipartFile profileImage = createMockProfileImage();
 
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
             doNothing().when(fileService).deleteUploadedImage(anyString());
             when(fileService.uploadImage(any())).thenReturn("newProfileUrl");
 
-            ArgumentCaptor<Member> argumentCaptor = ArgumentCaptor.forClass(Member.class);
-
             // when
-            memberService.update(1111L, profileUpdateRequestDto);
+            memberService.update(1111L, profileImage, profileUpdateRequestDto);
 
             // then
+            ArgumentCaptor<Member> argumentCaptor = ArgumentCaptor.forClass(Member.class);
             verify(memberRepository).save(argumentCaptor.capture());
             Member member = argumentCaptor.getValue();
+
             assertThat(member.getAuthId()).isEqualTo(1111L);
             assertThat(member.getNickname()).isEqualTo("newNickname");
             assertThat(member.getProfileUrl()).isEqualTo("newProfileUrl");
+        }
+
+        private MockMultipartFile createMockProfileImage() {
+            return new MockMultipartFile(
+                    "file",
+                    "file.png",
+                    "text/png",
+                    ("Picture").getBytes());
+        }
+
+        private Member createMockMember() {
+            return Member.builder()
+                    .authId(1111L)
+                    .nickname("oldNickname")
+                    .profileUrl("oldProfileUrl")
+                    .build();
         }
 
         @Test
@@ -87,7 +93,7 @@ class MemberServiceTest {
 
             // when
             // then
-            assertThatThrownBy(() -> memberService.update(1111L, new ProfileUpdateRequestDto()))
+            assertThatThrownBy(() -> memberService.update(1111L, mock(MockMultipartFile.class), new ProfileUpdateRequestDto()))
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
