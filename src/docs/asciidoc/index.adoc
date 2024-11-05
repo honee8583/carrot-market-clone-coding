@@ -19,3 +19,5 @@ include::board/searchKeyword.adoc[]
 include::category/category.adoc[]
 
 include::keyword/keyword.adoc[]
+
+include::member/member.adoc[]

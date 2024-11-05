@@ -1,0 +1,40 @@
+== Member API
+
+=== 사용자 프로필 변경
+
+==== CURL Request
+include::{snippets}/profile-update/update-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/profile-update/update-success/http-request.adoc[]
+
+==== Request Parts
+include::{snippets}/profile-update/update-success/request-parts.adoc[]
+include::{snippets}/profile-update/update-success/request-part-profileUpdateRequest-fields.adoc[]
+include::{snippets}/profile-update/update-success/request-part-profileUpdateRequest-body.adoc[]
+
+==== Response Body (200 - 수정 성공)
+정상 응답
+include::{snippets}/profile-update/update-success/response-fields.adoc[]
+include::{snippets}/profile-update/update-success/response-body.adoc[]
+
+==== Response Body (401 - 사용자가 존재하지 않음)
+include::{snippets}/profile-update/update-fail-member-not-found/response-body.adoc[]
+
+'''
+
+=== 사용자 프로필 조회
+
+==== CURL Request
+include::{snippets}/profile-detail/get-profile-detail-success/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/profile-detail/get-profile-detail-success/http-request.adoc[]
+
+==== Response Body (200 - 조회 성공)
+정상 응답
+include::{snippets}/profile-detail/get-profile-detail-success/response-fields.adoc[]
+include::{snippets}/profile-detail/get-profile-detail-success/response-body.adoc[]
+
+==== Response Body (401 - 사용자가 존재하지 않음)
+include::{snippets}/profile-detail/get-profile-detail-fail-member-not-found/response-body.adoc[]
