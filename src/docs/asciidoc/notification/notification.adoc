@@ -1,0 +1,60 @@
+== Notification API
+
+=== SSE 연결
+
+==== CURL Request
+include::{snippets}/connect-success/connect-success-test/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/connect-success/connect-success-test/http-request.adoc[]
+
+==== Request Headers
+include::{snippets}/connect-success/connect-success-test/request-headers.adoc[]
+
+==== Response Body
+- 연결에 성공할경우 SseEmitter 객체 반환
+- SseEmitter 객체에는 id, event, message 존재
+- 지속적인 연결이 끊긴 경우 다음번에 연결을 요청할 때는 마지막에 수신한 SseEmitter의 Id값을 lastEventId 헤더에 추가해서 연결 요청
+
+'''
+
+=== 이전 알림 내역 조회
+
+==== CURL Request
+include::{snippets}/get-all-notifications/get-all-notifications-success-test/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/get-all-notifications/get-all-notifications-success-test/http-request.adoc[]
+
+==== Response Body (200 - 조회 성공)
+정상 응답
+include::{snippets}/get-all-notifications/get-all-notifications-success-test/response-fields.adoc[]
+include::{snippets}/get-all-notifications/get-all-notifications-success-test/response-body.adoc[]
+
+==== Response Body (401 - 사용자가 존재하지 않음)
+include::{snippets}/get-all-notifications/get-all-notifications-fail-member-not-found-test/response-body.adoc[]
+
+'''
+
+=== 알림 읽음 처리 요청
+
+==== CURL Request
+include::{snippets}/read/read-success-test/curl-request.adoc[]
+
+==== Http Request
+include::{snippets}/read/read-success-test/http-request.adoc[]
+
+==== Response Body (200 - 수정 성공)
+정상 응답
+include::{snippets}/read/read-success-test/response-fields.adoc[]
+include::{snippets}/read/read-success-test/response-body.adoc[]
+
+==== Response Body (400 - 알림이 존재하지 않음)
+include::{snippets}/read/read-fail-notification-not-found-test/response-body.adoc[]
+
+==== Response Body (401 - 사용자가 존재하지 않음)
+include::{snippets}/read/read-fail-member-not-found-test/response-body.adoc[]
+
+==== Response Body (403 - 권한없음)
+include::{snippets}/read/read-fail-not-member-of-notification-test/response-body.adoc[]
+
