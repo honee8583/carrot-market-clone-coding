@@ -23,3 +23,5 @@ include::keyword/keyword.adoc[]
 include::member/member.adoc[]
 
 include::notification/notification.adoc[]
+
+include::word/word.adoc[]
