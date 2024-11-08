@@ -93,6 +93,3 @@ include::{snippets}/delete-keyword/delete-fail-member-not-found/response-body.ad
 
 ==== Response Body (400 - 키워드가 존재하지 않음)
 include::{snippets}/delete-keyword/delete-fail-keyword-not-found/response-body.adoc[]
-
-'''
-
