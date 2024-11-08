@@ -31,7 +31,7 @@ public class NotificationRestDocsHelper extends RestDocsHelper {
     public ResultHandler createGetAllNotificationSuccessDocument() {
         return restDocs.document(
                 responseFields(
-                        addFieldDescriptors(createNotificationResponseDtoDescriptors())
+                        addFieldsWithCommonFieldsDescriptors(createNotificationResponseDtoDescriptors())
                 )
         );
     }
