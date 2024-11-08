@@ -5,16 +5,12 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.N
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.UNAUTHORIZED_ACCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.GET_ALL_NOTIFICATIONS_SUCCESS;
 import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.READ_NOTIFICATION_SUCCESS;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
@@ -22,26 +18,34 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.exception.NotificationNotExistsException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.notification.dto.NotificationResponseDto;
+import com.carrot.carrotmarketclonecoding.notification.helper.NotificationDtoFactory;
+import com.carrot.carrotmarketclonecoding.notification.helper.NotificationTestHelper;
 import com.carrot.carrotmarketclonecoding.notification.service.SseEmitterService;
 import com.carrot.carrotmarketclonecoding.notification.service.impl.NotificationServiceImpl;
-import java.util.Arrays;
+import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
+import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@Import(value = {
+        NotificationDtoFactory.class
+})
 @WithCustomMockUser
 @WebMvcTest(controllers = NotificationController.class)
-class NotificationControllerTest {
+class NotificationControllerTest extends RestDocsTestUtil {
+
+    private NotificationTestHelper testHelper;
 
     @Autowired
-    private MockMvc mvc;
+    private NotificationDtoFactory dtoFactory;
 
     @MockBean
     private SseEmitterService sseEmitterService;
@@ -49,20 +53,24 @@ class NotificationControllerTest {
     @MockBean
     private NotificationServiceImpl notificationService;
 
+    @BeforeEach
+    void setUp() {
+        this.testHelper = new NotificationTestHelper(mvc, restDocs);
+    }
+
     @Nested
     @DisplayName("SSE 연결 요청 컨트롤러 테스트")
     class ConnectSuccess {
 
         @Test
         @DisplayName("성공")
-        void connectSuccess() throws Exception {
+        void connectSuccessTest() throws Exception {
             // given
             // when
             when(sseEmitterService.subscribe(anyLong(), anyString())).thenReturn(mock(SseEmitter.class));
 
             // then
-            mvc.perform(get("/connect"))
-                    .andExpect(status().isOk());
+            testHelper.assertConnectSuccess();
         }
     }
 
@@ -72,44 +80,42 @@ class NotificationControllerTest {
 
         @Test
         @DisplayName("성공")
-        void getAllNotificationsSuccess() throws Exception {
+        void getAllNotificationsSuccessTest() throws Exception {
             // given
-            List<NotificationResponseDto> response = Arrays.asList(
-                NotificationResponseDto.builder().id(1L).content("notification1").build(),
-                NotificationResponseDto.builder().id(1L).content("notification1").build(),
-                NotificationResponseDto.builder().id(1L).content("notification1").build()
-            );
+            List<NotificationResponseDto> response = dtoFactory.createNotifications();
+
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isOk())
+                    .status(200)
+                    .result(true)
+                    .message(GET_ALL_NOTIFICATIONS_SUCCESS.getMessage())
+                    .build();
 
             // when
             when(notificationService.getAllNotifications(anyLong())).thenReturn(response);
 
             // then
-            mvc.perform(get("/notification"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(GET_ALL_NOTIFICATIONS_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data.size()", equalTo(3)));
+            testHelper.assertGetAllNotificationsSuccess(resultFields);
         }
 
         @Test
         @DisplayName("실패 - 사용자가 존재하지 않음")
-        void getAllNotificationsFailMemberNotFound() throws Exception {
+        void getAllNotificationsFailMemberNotFoundTest() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
+
             // when
-            doThrow(MemberNotFoundException.class).when(notificationService).read(anyLong(), anyLong());
+            doThrow(MemberNotFoundException.class).when(notificationService).getAllNotifications(anyLong());
 
             // then
-            mvc.perform(patch("/notification/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertGetAllNotificationsFail(resultFields);
         }
     }
-
 
     @Nested
     @DisplayName("알림 읽음 처리 컨트롤러 테스트")
@@ -117,70 +123,74 @@ class NotificationControllerTest {
 
         @Test
         @DisplayName("성공")
-        void readSuccess() throws Exception {
+        void readSuccessTest() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isOk())
+                    .status(200)
+                    .result(true)
+                    .message(READ_NOTIFICATION_SUCCESS.getMessage())
+                    .build();
+
             // when
             doNothing().when(notificationService).read(anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/notification/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", equalTo(200)))
-                    .andExpect(jsonPath("$.result", equalTo(true)))
-                    .andExpect(jsonPath("$.message", equalTo(READ_NOTIFICATION_SUCCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertReadNotification(resultFields);
         }
 
         @Test
-        @DisplayName("성공 - 사용자가 존재하지 않음")
-        void readFailMemberNotFound() throws Exception {
+        @DisplayName("실패 - 사용자가 존재하지 않음")
+        void readFailMemberNotFoundTest() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isUnauthorized())
+                    .status(401)
+                    .result(false)
+                    .message(MEMBER_NOT_FOUND.getMessage())
+                    .build();
+
             // when
             doThrow(MemberNotFoundException.class).when(notificationService).read(anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/notification/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status", equalTo(401)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(MEMBER_NOT_FOUND.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertReadNotification(resultFields);
         }
 
         @Test
         @DisplayName("실패 - 알림이 존재하지 않음")
-        void readFailNotificationNotFound() throws Exception {
+        void readFailNotificationNotFoundTest() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isBadRequest())
+                    .status(400)
+                    .result(false)
+                    .message(NOTIFICATION_NOT_EXISTS.getMessage())
+                    .build();
+
             // when
             doThrow(NotificationNotExistsException.class).when(notificationService).read(anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/notification/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", equalTo(400)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(NOTIFICATION_NOT_EXISTS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertReadNotification(resultFields);
         }
 
         @Test
         @DisplayName("실패 - 사용자의 알림이 아님")
-        void readFailNotMemberOfNotification() throws Exception {
+        void readFailNotMemberOfNotificationTest() throws Exception {
             // given
+            ResultFields resultFields = ResultFields.builder()
+                    .resultMatcher(status().isForbidden())
+                    .status(403)
+                    .result(false)
+                    .message(UNAUTHORIZED_ACCESS.getMessage())
+                    .build();
+
             // when
             doThrow(UnauthorizedAccessException.class).when(notificationService).read(anyLong(), anyLong());
 
             // then
-            mvc.perform(patch("/notification/{id}", 1L)
-                            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status", equalTo(403)))
-                    .andExpect(jsonPath("$.result", equalTo(false)))
-                    .andExpect(jsonPath("$.message", equalTo(UNAUTHORIZED_ACCESS.getMessage())))
-                    .andExpect(jsonPath("$.data", equalTo(null)));
+            testHelper.assertReadNotification(resultFields);
         }
     }
 }
