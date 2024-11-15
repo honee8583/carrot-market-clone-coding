@@ -14,6 +14,13 @@ spring:
       host: ENC(PgnZGrO2VsW7JQAPvnYD7spp5X0nxFWX)
       port: 6379
 
+    mongodb:
+      host: ENC(t4iCM1Oj6H6Rm4+XHUXiX/uzN22MhEl8)
+      port: 27017
+      username: ENC(CytuGEb222nsgbOgSGEoFV2/5+LBuSf7G2OJ9q25WdA=)
+      password: ENC(1lHrDMhc9mu5YWp/Zh5IwjmlFDTmp2J1)
+      database: ENC(qhxuCtJrM96e5tAyBnsHfWwUqr6hGx+i)
+
   jpa:
     show-sql: false
 
@@ -23,3 +30,6 @@ server:
   serverAddress: ENC(dXcnoqAIp/O+aKQGMpLwNJ66ajoubJLH)
 
 serverName: blue_server
+
+websocket:
+  origin: ENC(kVsxrVJ0hlwQ2+pf/M8j6adRNV/B8G2JmH6U6qXq58g=)
