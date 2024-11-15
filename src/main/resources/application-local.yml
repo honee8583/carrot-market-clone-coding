@@ -14,6 +14,13 @@ spring:
       host: 127.0.0.1
       port: 6379
 
+    mongodb:
+      host: localhost
+      port: 27017
+      username: ENC(GsCHiWIS/SjA7HliN3PtovpxB3yKKszJ)
+      password: ENC(iUd5g5W+lE5rQO7uhUbQFkjvH+P5RUsN)
+      database: ENC(qffKQ59Gd3EuH3G+7puCY/1Oubdbdb5F)
+
   jpa:
     show-sql: true
     properties:
@@ -31,3 +38,6 @@ serverName: localhost
 logging:
   level:
     com.carrot.carrotmarketclonecoding: DEBUG
+
+websocket:
+  origin: http://localhost:3000
