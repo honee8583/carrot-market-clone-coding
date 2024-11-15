@@ -42,7 +42,12 @@ public enum SuccessMessage {
     ADD_KEYWORD_SUCCESS("키워드 추가에 성공하였습니다!"),
     EDIT_KEYWORD_SUCCESS("키워드 편집에 성공하였습니다!"),
     GET_KEYWORDS_SUCCESS("사용자의 키워드 목록 조회에 성공하였습니다!"),
-    DELETE_KEYWORDS_SUCCESS("키워드 삭제에 성공하였습니다!");
+    DELETE_KEYWORDS_SUCCESS("키워드 삭제에 성공하였습니다!"),
+
+    CREATE_CHAT_ROOM_SUCCESS("채팅방 개설에 성공하였습니다!"),
+    GET_CHAT_ROOMS_SUCCESS("채팅방 목록 조회에 성공하였습니다!"),
+    DELETE_CHAT_ROOM_SUCCESS("채팅방 삭제에 성공하였습니다!"),
+    GET_CHAT_MESSAGES_SUCCESS("채팅 내역 조회에 성공하였습니다!");
 
     private final String message;
 }

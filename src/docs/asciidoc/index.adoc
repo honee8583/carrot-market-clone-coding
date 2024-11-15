@@ -25,3 +25,5 @@ include::member/member.adoc[]
 include::notification/notification.adoc[]
 
 include::word/word.adoc[]
+
+include::chat/chat.adoc[]

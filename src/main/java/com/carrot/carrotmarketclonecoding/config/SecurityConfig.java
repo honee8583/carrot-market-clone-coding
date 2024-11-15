@@ -82,7 +82,7 @@ public class SecurityConfig {
                 }));
 
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/callback", "/hc", "/env", "/docs/**").permitAll()
+                .requestMatchers("/callback", "/hc", "/env", "/docs/**", "/test", "/chat/**").permitAll()
                 .requestMatchers("/**").hasRole("USER")
                 .anyRequest().permitAll()
         );

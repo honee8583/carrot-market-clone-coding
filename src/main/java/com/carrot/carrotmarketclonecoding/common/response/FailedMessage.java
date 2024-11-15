@@ -34,6 +34,9 @@ public enum FailedMessage {
     ALREADY_READ_NOTIFICATION("이미 읽은 알림입니다!"),
 
     KEYWORD_OVER_LIMIT("키워드개수는 30개까지만 저장할 수 있습니다!"),
-    KEYWORD_NOT_FOUND("존재하지 않는 키워드입니다!");
+    KEYWORD_NOT_FOUND("존재하지 않는 키워드입니다!"),
+
+    CHAT_ROOM_NOT_FOUND("존재하지 않는 채팅방입니다!"),
+    NOT_MEMBER_OF_CHAT_ROOM("채팅방의 사용자가 아닙니다!");
     private final String message;
 }
