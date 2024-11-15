@@ -15,11 +15,7 @@ spring:
       port: 6379
 
     mongodb:
-      host: localhost
-      port: 27017
-      username: ENC(GsCHiWIS/SjA7HliN3PtovpxB3yKKszJ)
-      password: ENC(iUd5g5W+lE5rQO7uhUbQFkjvH+P5RUsN)
-      database: ENC(qffKQ59Gd3EuH3G+7puCY/1Oubdbdb5F)
+      uri: mongodb://carrot-market:ekgns0508@localhost:27017/carrot-market
 
   jpa:
     show-sql: true

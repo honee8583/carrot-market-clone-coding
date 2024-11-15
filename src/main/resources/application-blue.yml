@@ -15,11 +15,7 @@ spring:
       port: 6379
 
     mongodb:
-      host: ENC(t4iCM1Oj6H6Rm4+XHUXiX/uzN22MhEl8)
-      port: 27017
-      username: ENC(CytuGEb222nsgbOgSGEoFV2/5+LBuSf7G2OJ9q25WdA=)
-      password: ENC(1lHrDMhc9mu5YWp/Zh5IwjmlFDTmp2J1)
-      database: ENC(qhxuCtJrM96e5tAyBnsHfWwUqr6hGx+i)
+      uri: ENC(8fdCwM8e/hZvyERLPUTMv+WU/LzYlfRqQOpaXAk1XkuFxbx9DolzXrRvhAxkrnwb7xqDuY9FfpCvfv1juxRt4pzl/QJGcbXT)
 
   jpa:
     show-sql: false
