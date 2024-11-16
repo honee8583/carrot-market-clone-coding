@@ -57,7 +57,6 @@ class ChatControllerTest extends RestDocsTestUtil {
     }
 
     private ChatRoomCreateRequestDto request = ChatRoomCreateRequestDto.builder()
-            .senderId(1L) // TODO remove senderId Field
             .receiverId(2L)
             .build();
 

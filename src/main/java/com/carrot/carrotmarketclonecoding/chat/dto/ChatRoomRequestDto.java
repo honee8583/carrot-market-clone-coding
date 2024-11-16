@@ -11,7 +11,6 @@ public class ChatRoomRequestDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatRoomCreateRequestDto {
-        private Long senderId;  // TODO remove field senderId
         private Long receiverId;
     }
 }
