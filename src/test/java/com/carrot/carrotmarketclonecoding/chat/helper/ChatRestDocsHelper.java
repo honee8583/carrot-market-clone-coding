@@ -20,8 +20,7 @@ public class ChatRestDocsHelper extends RestDocsHelper {
     public ResultHandler createCreateChatRoomDocument() {
         return restDocs.document(
                 requestFields(
-                        fieldWithPath("receiverId").description("수신자 아이디"),
-                        fieldWithPath("senderId").description("송신자 아이디")    // TODO remove fieldwithpath
+                        fieldWithPath("receiverId").description("수신자 아이디")
                 ),
                 responseFields(
                         addFieldsWithCommonFieldsDescriptors(getCreateChatRoomFieldDescriptors())

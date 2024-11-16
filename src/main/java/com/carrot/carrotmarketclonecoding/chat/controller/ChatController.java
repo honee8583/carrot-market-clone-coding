@@ -38,9 +38,7 @@ public class ChatController {
     @PostMapping
     public ResponseEntity<?> createChatRoom(@AuthenticationPrincipal LoginUser loginUser,
                                             @RequestBody ChatRoomCreateRequestDto chatRoomCreateRequestDto) {
-        // TODO use Login User
-//        String roomNum = chatRoomService.create(Long.parseLong(loginUser.getUsername()), chatRoomCreateRequestDto);
-        String roomNum = chatRoomService.create(chatRoomCreateRequestDto.getSenderId(), chatRoomCreateRequestDto);
+        String roomNum = chatRoomService.create(Long.parseLong(loginUser.getUsername()), chatRoomCreateRequestDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ResponseResult.success(HttpStatus.CREATED, CREATE_CHAT_ROOM_SUCCESS.getMessage(), roomNum));
