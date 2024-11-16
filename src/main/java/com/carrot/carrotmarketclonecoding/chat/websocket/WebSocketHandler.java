@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +53,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Long receiverId = Long.parseLong(parameters.get(RECEIVER_KEY));
         chatRoomService.validateChatRoom(roomNum, senderId, receiverId);
 
-        log.debug("WebSocket 연결 - roomNum: {}, senderId: {}, receiverId: {}", roomNum, senderId, receiverId);
+        log.debug("WebSocket 연결 -> roomNum: {}, senderId: {}, receiverId: {}", roomNum, senderId, receiverId);
     }
 
     private Map<String, String> parseQueryParams(String query) {
@@ -71,7 +72,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        log.error("session transport exception, session id={}, error={}", session.getId(), exception.getMessage());
+        log.error("웹 소켓 에러 -> session id={}, error={}", session.getId(), exception.getMessage());
         removeSessionFromRoom(session);
         session.close();
         logRoomSize();
@@ -98,7 +99,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             ObjectMapper objectMapper = new ObjectMapper();
             chatMessageRequestDto = objectMapper.readValue(message, ChatMessageRequestDto.class);
         } catch (Exception e) {
-            log.error("Object Mapper Binding Error!, message: {}", message);
+            log.error("메시지 바인딩 에러!, message: {}", message);
         }
         chatMessageService.save(chatMessageRequestDto);
 
@@ -112,7 +113,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 try {
                     s.sendMessage(message);
                 } catch (IOException e) {
-                    log.error("Send Message Failed! roomNum: {}, session: {}", roomNum, session.getId());
+                    log.error("메시지 전송 에러! -> roomNum: {}, session: {}", roomNum, session.getId());
                     throw new RuntimeException("Send Message Failed!");
                 }
             }
