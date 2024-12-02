@@ -2,9 +2,13 @@ package com.carrot.carrotmarketclonecoding.auth.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenExpiredException;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenNotValidException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.domain.enums.Role;
 import java.util.Date;
@@ -46,9 +50,16 @@ public class JwtUtil {
     }
 
     public LoginUser verify(String token) {
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
-                .build()
-                .verify(token.replace(JwtVO.TOKEN_PREFIX, ""));
+        DecodedJWT decodedJWT;
+        try {
+            decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
+                    .build()
+                    .verify(token.replace(JwtVO.TOKEN_PREFIX, ""));
+        } catch (TokenExpiredException e) {
+            throw new JwtTokenExpiredException();
+        } catch (JWTVerificationException e) {
+            throw new JwtTokenNotValidException();
+        }
 
         Member member = Member.builder()
                 .authId(decodedJWT.getClaim(CLAIM_ID).asLong())

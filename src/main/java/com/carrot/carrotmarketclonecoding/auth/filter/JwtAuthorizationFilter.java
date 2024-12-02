@@ -1,14 +1,12 @@
 package com.carrot.carrotmarketclonecoding.auth.filter;
 
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.TOKEN_EXPIRED_MESSAGE;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.TOKEN_NOT_EXISTS;
-import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.TOKEN_NOT_VALID;
 
-import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
+import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenExpiredException;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenNotValidException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +33,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         try {
-            if (isHeaderVerify(request, response)) {
+            if (isAuthorizationHeaderExists(request)) {
                 String token = request.getHeader(JwtVO.HEADER);
                 LoginUser loginUser = jwtUtil.verify(token);
 
@@ -44,15 +42,15 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             } else {
                 request.setAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE, TOKEN_NOT_EXISTS.getMessage());
             }
-        } catch (TokenExpiredException e) {
-            request.setAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE, TOKEN_EXPIRED_MESSAGE.getMessage());
-        } catch (SignatureVerificationException e) {
-            request.setAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE, TOKEN_NOT_VALID.getMessage());
+        } catch (JwtTokenExpiredException e) {
+            request.setAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE, e.getMessage());
+        } catch (JwtTokenNotValidException e) {
+            request.setAttribute(JwtVO.JWT_EXCEPTION_ATTRIBUTE, e.getMessage());
         }
         chain.doFilter(request, response);
     }
 
-    private boolean isHeaderVerify(HttpServletRequest request, HttpServletResponse response) {
+    private boolean isAuthorizationHeaderExists(HttpServletRequest request) {
         String token = request.getHeader(JwtVO.HEADER);
         if (token == null || !token.startsWith(JwtVO.TOKEN_PREFIX)) {
             return false;
