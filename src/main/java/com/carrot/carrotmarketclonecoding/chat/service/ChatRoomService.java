@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.chat.service;
 
+import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import java.util.List;
@@ -12,5 +13,5 @@ public interface ChatRoomService {
 
     void delete(Long authId, Long chatRoomId);
 
-    void validateChatRoom(String roomNum, Long senderId, Long receiverId);
+    void validateChatRoom(ChatMessageRequestDto messageRequestDto);
 }

@@ -1,6 +1,7 @@
 package com.carrot.carrotmarketclonecoding.chat.service.impl;
 
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
+import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
@@ -75,9 +76,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     @Transactional(readOnly = true)
-    public void validateChatRoom(String roomNum, Long senderId, Long receiverId) {
-        ChatRoom chatRoom = chatRoomRepository.findByRoomNum(roomNum).orElseThrow(ChatRoomNotFoundException::new);
-        validateSenderAndReceiverOfChatRoom(chatRoom, senderId, receiverId);
+    public void validateChatRoom(ChatMessageRequestDto messageRequestDto) {
+        ChatRoom chatRoom = chatRoomRepository.findByRoomNum(messageRequestDto.getRoomNum()).orElseThrow(ChatRoomNotFoundException::new);
+        validateSenderAndReceiverOfChatRoom(chatRoom, messageRequestDto.getSenderId(), messageRequestDto.getReceiverId());
     }
 
     public void validateSenderAndReceiverOfChatRoom(ChatRoom chatRoom, Long senderId, Long receiverId) {
