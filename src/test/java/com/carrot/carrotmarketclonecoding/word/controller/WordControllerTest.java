@@ -10,17 +10,15 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberWordLimitException;
 import com.carrot.carrotmarketclonecoding.common.exception.WordNotFoundException;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import com.carrot.carrotmarketclonecoding.word.dto.WordRequestDto;
 import com.carrot.carrotmarketclonecoding.word.dto.WordResponseDto.WordListResponseDto;
 import com.carrot.carrotmarketclonecoding.word.dto.validation.WordRegisterValidationMessage.MESSAGE;
 import com.carrot.carrotmarketclonecoding.word.helper.WordTestHelper;
-import com.carrot.carrotmarketclonecoding.word.service.impl.WordServiceImpl;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -29,18 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-@WithCustomMockUser
-@WebMvcTest(controllers = WordController.class)
-class WordControllerTest extends RestDocsTestUtil {
+class WordControllerTest extends ControllerTest {
 
     private WordTestHelper testHelper;
-
-    @MockBean
-    private WordServiceImpl wordService;
-
     private WordRequestDto wordRequest;
 
     @BeforeEach

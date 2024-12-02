@@ -4,28 +4,19 @@ import static com.carrot.carrotmarketclonecoding.common.response.SuccessMessage.
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.category.dto.CategoryResponseDto;
 import com.carrot.carrotmarketclonecoding.category.helper.category.CategoryTestHelper;
-import com.carrot.carrotmarketclonecoding.category.service.impl.CategoryServiceImpl;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-@WithCustomMockUser
-@WebMvcTest(controllers = CategoryController.class)
-class CategoryControllerTest extends RestDocsTestUtil {
+class CategoryControllerTest extends ControllerTest {
 
     private CategoryTestHelper testHelper;
-
-    @MockBean
-    private CategoryServiceImpl categoryService;
 
     @BeforeEach
     void setUp() {

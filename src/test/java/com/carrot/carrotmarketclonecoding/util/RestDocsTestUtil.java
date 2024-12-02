@@ -18,7 +18,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Disabled
 @Import(RestDocsConfig.class)
 @ExtendWith(RestDocumentationExtension.class)
-public class RestDocsTestUtil {
+public abstract class RestDocsTestUtil {
 
     @Autowired
     protected MockMvc mvc;
@@ -31,7 +31,7 @@ public class RestDocsTestUtil {
         this.mvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(MockMvcRestDocumentation.documentationConfiguration(provider))
                 .alwaysDo(restDocs)
-                .alwaysDo(MockMvcResultHandlers.print())
+//                .alwaysDo(MockMvcResultHandlers.print())
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
     }

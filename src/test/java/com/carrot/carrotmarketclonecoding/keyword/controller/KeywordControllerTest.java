@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.KeywordNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.KeywordOverLimitException;
@@ -20,8 +20,6 @@ import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordRequestDto.KeywordE
 import com.carrot.carrotmarketclonecoding.keyword.dto.KeywordResponseDto.KeywordDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.keyword.helper.KeywordDtoFactory;
 import com.carrot.carrotmarketclonecoding.keyword.helper.KeywordTestHelper;
-import com.carrot.carrotmarketclonecoding.keyword.service.impl.KeywordServiceImpl;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,24 +27,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 
-@Import(value = {
-        KeywordDtoFactory.class
-})
-@WithCustomMockUser
-@WebMvcTest(controllers = KeywordController.class)
-class KeywordControllerTest extends RestDocsTestUtil {
+class KeywordControllerTest extends ControllerTest {
 
     private KeywordTestHelper testHelper;
 
     @Autowired
     private KeywordDtoFactory dtoFactory;
-
-    @MockBean
-    private KeywordServiceImpl keywordService;
 
     @BeforeEach
     void setUp() {

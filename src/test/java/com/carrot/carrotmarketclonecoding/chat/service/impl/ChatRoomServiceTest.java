@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
+import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
@@ -266,11 +267,18 @@ class ChatRoomServiceTest {
                     .receiver(receiver)
                     .build();
 
+            ChatMessageRequestDto request = ChatMessageRequestDto.builder()
+                    .roomNum("test room")
+                    .senderId(1111L)
+                    .receiverId(2222L)
+                    .message("test message")
+                    .build();
+
             // when
             when(chatRoomRepository.findByRoomNum(anyString())).thenReturn(Optional.of(chatRoom));
 
             // then
-            chatRoomService.validateChatRoom("test room", 2222L, 1111L);
+            chatRoomService.validateChatRoom(request);
         }
 
         @Test
@@ -286,9 +294,16 @@ class ChatRoomServiceTest {
                     .build();
             when(chatRoomRepository.findByRoomNum(anyString())).thenReturn(Optional.of(chatRoom));
 
+            ChatMessageRequestDto request = ChatMessageRequestDto.builder()
+                    .roomNum("test room")
+                    .senderId(2222L)
+                    .receiverId(3333L)
+                    .message("test message")
+                    .build();
+
             // when
             // then
-            assertThatThrownBy(() -> chatRoomService.validateChatRoom("test room", 2222L, 3333L))
+            assertThatThrownBy(() -> chatRoomService.validateChatRoom(request))
                     .isInstanceOf(NotMemberOfChatRoomException.class)
                     .hasMessage(NOT_MEMBER_OF_CHAT_ROOM.getMessage());
         }
@@ -299,9 +314,16 @@ class ChatRoomServiceTest {
             // given
             when(chatRoomRepository.findByRoomNum(anyString())).thenReturn(Optional.empty());
 
+            ChatMessageRequestDto request = ChatMessageRequestDto.builder()
+                    .roomNum("test room")
+                    .senderId(1111L)
+                    .receiverId(2222L)
+                    .message("test message")
+                    .build();
+
             // when
             // then
-            assertThatThrownBy(() -> chatRoomService.validateChatRoom("test room", 1111L, 2222L))
+            assertThatThrownBy(() -> chatRoomService.validateChatRoom(request))
                     .isInstanceOf(ChatRoomNotFoundException.class)
                     .hasMessage(CHAT_ROOM_NOT_FOUND.getMessage());
         }

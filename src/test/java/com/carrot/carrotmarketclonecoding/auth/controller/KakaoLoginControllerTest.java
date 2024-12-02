@@ -16,28 +16,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.auth.dto.TokenDto;
-import com.carrot.carrotmarketclonecoding.auth.service.LoginService;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.RefreshTokenNotMatchException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
 
-@WithCustomMockUser
-@WebMvcTest(controllers = KakaoLoginController.class)
-class KakaoLoginControllerTest {
-
-    @Autowired
-    private MockMvc mvc;
-
-    @MockBean
-    private LoginService loginService;
+class KakaoLoginControllerTest extends ControllerTest {
 
     @Test
     @DisplayName("카카오 로그인 테스트")

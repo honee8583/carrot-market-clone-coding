@@ -2,26 +2,17 @@ package com.carrot.carrotmarketclonecoding.keyword.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carrot.carrotmarketclonecoding.RepositoryTest;
 import com.carrot.carrotmarketclonecoding.keyword.domain.Keyword;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-@DataJpaTest
-class KeywordRepositoryTest {
-
-    @Autowired
-    private KeywordRepository keywordRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
+class KeywordRepositoryTest extends RepositoryTest {
 
     @Test
     @DisplayName("쿼리메서드 countByMember() 테스트")

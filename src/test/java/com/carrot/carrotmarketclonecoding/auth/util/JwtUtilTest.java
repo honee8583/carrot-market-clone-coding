@@ -8,6 +8,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenExpiredException;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenNotValidException;
 import com.carrot.carrotmarketclonecoding.member.domain.enums.Role;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +61,7 @@ class JwtUtilTest {
 
         // when
         String token = jwtUtil.createRefreshToken(authId, role);
+        System.out.println("token = " + token);
 
         // then
         assertThat(token).isNotNull();
@@ -99,6 +102,25 @@ class JwtUtilTest {
         // when
         // then
         assertThatThrownBy(() -> jwtUtil.verify(invalidToken))
-                .isInstanceOf(JWTVerificationException.class);
+                .isInstanceOf(JwtTokenNotValidException.class);
+    }
+
+    @Test
+    @DisplayName("토큰의 유효시간이 지난경우 예외 발생")
+    public void verifyExpiredTokenTest() {
+        // given
+        ReflectionTestUtils.setField(jwtUtil, "EXPIRATION_TIME", 0);
+        String token = jwtUtil.createAccessToken(1111L, Role.USER);
+//        String invalidToken = JWT.create()
+//                .withSubject("token")
+//                .withExpiresAt(new Date(System.currentTimeMillis() + 100))
+//                .withClaim("id", 1111L)
+//                .withClaim("role", Role.USER.name())
+//                .sign(Algorithm.HMAC512(SECRET));
+
+        // when
+        // then
+        assertThatThrownBy(() -> jwtUtil.verify(token))
+                .isInstanceOf(JwtTokenExpiredException.class);
     }
 }

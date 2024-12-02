@@ -13,16 +13,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.NotificationNotExistsException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.notification.dto.NotificationResponseDto;
 import com.carrot.carrotmarketclonecoding.notification.helper.NotificationDtoFactory;
 import com.carrot.carrotmarketclonecoding.notification.helper.NotificationTestHelper;
-import com.carrot.carrotmarketclonecoding.notification.service.SseEmitterService;
-import com.carrot.carrotmarketclonecoding.notification.service.impl.NotificationServiceImpl;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,28 +27,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-@Import(value = {
-        NotificationDtoFactory.class
-})
-@WithCustomMockUser
-@WebMvcTest(controllers = NotificationController.class)
-class NotificationControllerTest extends RestDocsTestUtil {
+class NotificationControllerTest extends ControllerTest {
 
     private NotificationTestHelper testHelper;
 
     @Autowired
     private NotificationDtoFactory dtoFactory;
-
-    @MockBean
-    private SseEmitterService sseEmitterService;
-
-    @MockBean
-    private NotificationServiceImpl notificationService;
 
     @BeforeEach
     void setUp() {

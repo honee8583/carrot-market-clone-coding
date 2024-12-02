@@ -10,38 +10,25 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.member.dto.ProfileDto.ProfileDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.member.helper.MemberDtoFactory;
 import com.carrot.carrotmarketclonecoding.member.helper.MemberTestHelper;
-import com.carrot.carrotmarketclonecoding.member.service.impl.MemberServiceImpl;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 
-@Import(value = {
-        MemberDtoFactory.class
-})
-@WithCustomMockUser
-@WebMvcTest(controllers = MemberController.class)
-class MemberControllerTest extends RestDocsTestUtil {
+class MemberControllerTest extends ControllerTest {
 
     private MemberTestHelper testHelper;
 
     @Autowired
     private MemberDtoFactory dtoFactory;
-
-    @MockBean
-    private MemberServiceImpl memberService;
 
     @BeforeEach
     void setUp() {
