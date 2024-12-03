@@ -1,30 +1,16 @@
 package com.carrot.carrotmarketclonecoding.board.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carrot.carrotmarketclonecoding.RepositoryTest;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardLike;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@DataJpaTest
-class BoardLikeRepositoryTest {
-
-    @Autowired
-    private BoardLikeRepository boardLikeRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
+class BoardLikeRepositoryTest extends RepositoryTest {
 
     @Test
     @DisplayName("쿼리메소드 countByBoard() 테스트")

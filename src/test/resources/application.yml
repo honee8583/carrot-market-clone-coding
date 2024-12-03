@@ -17,6 +17,9 @@ spring:
       host: 127.0.0.1
       port: 6379
 
+    mongodb:
+      uri: mongodb://carrot-market:ekgns0508@localhost:27017/carrot-market
+
 encryptor:
   key: ${JASYPT_KEY}
 
@@ -40,3 +43,8 @@ jwt:
 
 websocket:
   origin: http://localhost:3000
+  rabbitmq:
+    host: 127.0.0.1
+    port: 61613
+    username: guest
+    password: guest

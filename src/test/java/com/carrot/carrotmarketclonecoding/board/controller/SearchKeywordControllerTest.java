@@ -11,11 +11,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.board.helper.searchkeyword.SearchKeywordTestHelper;
-import com.carrot.carrotmarketclonecoding.board.service.SearchKeywordService;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,17 +23,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-@WithCustomMockUser
-@WebMvcTest(controllers = SearchKeywordController.class)
-class SearchKeywordControllerTest extends RestDocsTestUtil {
+class SearchKeywordControllerTest extends ControllerTest {
 
     private SearchKeywordTestHelper testHelper;
-
-    @MockBean
-    private SearchKeywordService searchKeywordService;
 
     @BeforeEach
     public void setUp() {

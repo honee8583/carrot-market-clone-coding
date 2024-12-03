@@ -1,29 +1,15 @@
 package com.carrot.carrotmarketclonecoding.board.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carrot.carrotmarketclonecoding.RepositoryTest;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
-import com.carrot.carrotmarketclonecoding.config.JpaAuditingConfig;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
-import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.Transactional;
 
-@Import(JpaAuditingConfig.class)
-@DataJpaTest
-@Transactional
-class BoardRepositoryTest {
-
-    @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
+class BoardRepositoryTest extends RepositoryTest {
 
     @Test
     @DisplayName("쿼리메소드 deleteAllByMemberAndTmpIsTrueAndIdIsNot() 테스트")
@@ -50,14 +36,14 @@ class BoardRepositoryTest {
 
     @Test
     @DisplayName("쿼리메소드 findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc() 테스트")
-    void findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc() throws Exception {
+    void findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc() {
         // given
         Member member = Member.builder().build();
         memberRepository.save(member);
 
-        Board board1 = Board.builder().member(member).tmp(false).build();
-        Board board2 = Board.builder().member(member).tmp(true).build();
-        Board board3 = Board.builder().member(member).tmp(true).build();
+        Board board1 = Board.builder().id(1L).member(member).tmp(false).build();
+        Board board2 = Board.builder().id(2L).member(member).tmp(true).build();
+        Board board3 = Board.builder().id(3L).member(member).tmp(true).build();
         boardRepository.save(board1);
         boardRepository.save(board2);
         boardRepository.save(board3);
@@ -67,6 +53,6 @@ class BoardRepositoryTest {
 
         // then
         assertThat(board.isPresent()).isTrue();
-        assertThat(board.get().getId()).isEqualTo(3L);
+        assertThat(board.get().getId()).isEqualTo(board3.getId());
     }
 }

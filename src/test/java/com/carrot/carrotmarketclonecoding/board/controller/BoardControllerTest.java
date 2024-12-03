@@ -11,14 +11,13 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardRegisterRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardRequestDto.BoardUpdateRequestDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardDetailResponseDto;
 import com.carrot.carrotmarketclonecoding.board.dto.BoardResponseDto.BoardSearchResponseDto;
 import com.carrot.carrotmarketclonecoding.board.helper.board.BoardDtoFactory;
 import com.carrot.carrotmarketclonecoding.board.helper.board.BoardTestHelper;
-import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
@@ -26,7 +25,6 @@ import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundExcepti
 import com.carrot.carrotmarketclonecoding.common.exception.TmpBoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.UnauthorizedAccessException;
 import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
 import java.util.Map;
@@ -35,26 +33,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 
-@Import(value = {
-        BoardTestHelper.class,
-        BoardDtoFactory.class
-})
-@WithCustomMockUser
-@WebMvcTest(controllers = BoardController.class)
-class BoardControllerTest extends RestDocsTestUtil {
+class BoardControllerTest extends ControllerTest {
 
     private BoardTestHelper testHelper;
 
     @Autowired
     private BoardDtoFactory dtoFactory;
-
-    @MockBean
-    private BoardServiceImpl boardService;
 
     @BeforeEach
     public void setUp() {

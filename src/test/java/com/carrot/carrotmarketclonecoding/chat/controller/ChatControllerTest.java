@@ -9,19 +9,16 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.carrot.carrotmarketclonecoding.auth.config.WithCustomMockUser;
+import com.carrot.carrotmarketclonecoding.ControllerTest;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.helper.ChatDtoFactory;
 import com.carrot.carrotmarketclonecoding.chat.helper.ChatTestHelper;
-import com.carrot.carrotmarketclonecoding.chat.service.impl.ChatMessageServiceImpl;
-import com.carrot.carrotmarketclonecoding.chat.service.impl.ChatRoomServiceImpl;
 import com.carrot.carrotmarketclonecoding.common.exception.ChatRoomNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.NotMemberOfChatRoomException;
 import com.carrot.carrotmarketclonecoding.common.exception.UserNotOwnerOfChatRoomException;
-import com.carrot.carrotmarketclonecoding.util.RestDocsTestUtil;
 import com.carrot.carrotmarketclonecoding.util.ResultFields;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,27 +26,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 
-@Import(value = {
-        ChatDtoFactory.class
-})
-@WithCustomMockUser
-@WebMvcTest(controllers = {ChatController.class})
-class ChatControllerTest extends RestDocsTestUtil {
+class ChatControllerTest extends ControllerTest {
 
     private ChatTestHelper testHelper;
 
     @Autowired
     private ChatDtoFactory dtoFactory;
-
-    @MockBean
-    private ChatRoomServiceImpl chatRoomService;
-
-    @MockBean
-    private ChatMessageServiceImpl chatMessageService;
 
     @BeforeEach
     void setUp() {

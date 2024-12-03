@@ -36,4 +36,9 @@ logging:
     com.carrot.carrotmarketclonecoding: DEBUG
 
 websocket:
-  origin: http://localhost:3000
+  origin: http://127.0.0.1:3000
+  rabbitmq:
+    host: 127.0.0.1
+    port: 61613
+    username: guest
+    password: guest

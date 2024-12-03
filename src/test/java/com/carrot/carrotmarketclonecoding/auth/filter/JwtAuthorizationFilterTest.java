@@ -15,6 +15,8 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
 import com.carrot.carrotmarketclonecoding.auth.dto.LoginUser;
 import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenExpiredException;
+import com.carrot.carrotmarketclonecoding.common.exception.JwtTokenNotValidException;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.domain.enums.Role;
 import jakarta.servlet.FilterChain;
@@ -90,7 +92,7 @@ class JwtAuthorizationFilterTest {
         // given
         String accessToken = "Bearer AccessToken";
         when(request.getHeader(anyString())).thenReturn(accessToken);
-        when(jwtUtil.verify(anyString())).thenThrow(TokenExpiredException.class);
+        when(jwtUtil.verify(anyString())).thenThrow(JwtTokenExpiredException.class);
 
         // when
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);
@@ -124,7 +126,7 @@ class JwtAuthorizationFilterTest {
         String accessToken = "Bearer invalidAccessToken";
 
         doReturn(accessToken).when(request).getHeader(JwtVO.HEADER);
-        when(jwtUtil.verify(anyString())).thenThrow(SignatureVerificationException.class);
+        when(jwtUtil.verify(anyString())).thenThrow(JwtTokenNotValidException.class);
 
         // when
         jwtAuthorizationFilter.doFilterInternal(request, response, filterChain);

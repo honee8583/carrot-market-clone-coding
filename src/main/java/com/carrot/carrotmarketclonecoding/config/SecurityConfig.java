@@ -82,7 +82,8 @@ public class SecurityConfig {
                 }));
 
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/callback", "/hc", "/env", "/docs/**", "/test", "/chat/**").permitAll()
+                .requestMatchers("/callback", "/hc", "/env", "/docs/**", "/test", "/ws-connect").permitAll()
+                .requestMatchers("/topic", "/publish", "/subscribe").authenticated()
                 .requestMatchers("/**").hasRole("USER")
                 .anyRequest().permitAll()
         );

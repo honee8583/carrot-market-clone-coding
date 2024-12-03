@@ -33,7 +33,7 @@ class ChatMessageRepositoryTest extends MongoTestContainerTest {
         chatMessageRepository.deleteAllByRoomNum(roomNum);
 
         // then
-        List<ChatMessage> result = chatMessageRepository.findAll();
+        List<ChatMessage> result = chatMessageRepository.findAllByRoomNumOrderByCreateDateDesc(roomNum);
         assertThat(result.size()).isEqualTo(0);
     }
 

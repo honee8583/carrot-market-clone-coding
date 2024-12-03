@@ -1,25 +1,15 @@
 package com.carrot.carrotmarketclonecoding.board.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carrot.carrotmarketclonecoding.RepositoryTest;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.board.domain.BoardPicture;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@DataJpaTest
-class BoardPictureRepositoryTest {
-
-    @Autowired
-    private BoardPictureRepository boardPictureRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
+class BoardPictureRepositoryTest extends RepositoryTest {
 
     @Test
     @DisplayName("쿼리메소드 findByBoard() 테스트")

@@ -28,4 +28,9 @@ server:
 serverName: green_server
 
 websocket:
-  origin: ENC(4qxv7DOqu1Ibky3mGwlD3p90oSPjkASbJAOYr8qvgC8=)
+  origin: ENC(Od/sNfz0xv68ameHDqXmzYn8DlqyCvoAWxHW+yTZ7vE==)
+  rabbitmq:
+    host: ENC(R6qCc7HIkrt147BP7IYfy1vGSoVezSBH)
+    port: 61613
+    username: guest
+    password: guest
