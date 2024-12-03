@@ -5,11 +5,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.carrot.carrotmarketclonecoding.RepositoryTest;
 import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class BoardRepositoryTest extends RepositoryTest {
+
+    @PersistenceContext
+    EntityManager em;
+
+    @BeforeEach
+    public void setUp() {
+        tearDown();
+    }
+
+    private void tearDown() {
+        em.createNativeQuery("ALTER TABLE MEMBERS ALTER COLUMN id RESTART WITH 1").executeUpdate();
+        em.createNativeQuery("ALTER TABLE BOARDS ALTER COLUMN id RESTART WITH 1").executeUpdate();
+    }
 
     @Test
     @DisplayName("쿼리메소드 deleteAllByMemberAndTmpIsTrueAndIdIsNot() 테스트")
