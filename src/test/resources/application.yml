@@ -44,7 +44,7 @@ jwt:
 websocket:
   origin: http://localhost:3000
   rabbitmq:
-    host: 127.0.0.1
+    host: 13.209.224.206
     port: 61613
     username: guest
     password: guest
