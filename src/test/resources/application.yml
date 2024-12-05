@@ -18,7 +18,7 @@ spring:
       port: 6379
 
     mongodb:
-      uri: ENC(yVNB1lZQiUgZLyZ5Q9Cgnzc5cmnQBif7XWjsDdlzUbJU/BmE1Qc+bB0b+EyEmeDkzHMkyfvzEE+BC1n/r2uj3YWhtG6/QPH5)
+      uri: ENC(DGfwYnQMchonKXfV8PeNh5ugoBaQt5SNX0Yd7EMYMHV3ejLUB/uK3OD3KHIE4JwqmR1/P093wn3SJzlv8gtd+tuZ/izV67KP)
 
 encryptor:
   key: ${JASYPT_KEY}
