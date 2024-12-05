@@ -4,6 +4,7 @@ import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.C
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.NOT_MEMBER_OF_CHAT_ROOM;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carrot.carrotmarketclonecoding.MongoTestContainerTest;
 import com.carrot.carrotmarketclonecoding.auth.dto.JwtVO;
 import com.carrot.carrotmarketclonecoding.auth.util.JwtUtil;
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
@@ -37,7 +38,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-class StompControllerTest {
+class StompControllerTest extends MongoTestContainerTest {
 
     private String wsUrl;
     private BlockingQueue<ChatMessageRequestDto> messages;
