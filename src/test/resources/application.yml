@@ -17,6 +17,9 @@ spring:
       host: 127.0.0.1
       port: 6379
 
+    mongodb:
+      uri: ENC(yVNB1lZQiUgZLyZ5Q9Cgnzc5cmnQBif7XWjsDdlzUbJU/BmE1Qc+bB0b+EyEmeDkzHMkyfvzEE+BC1n/r2uj3YWhtG6/QPH5)
+
 encryptor:
   key: ${JASYPT_KEY}
 
