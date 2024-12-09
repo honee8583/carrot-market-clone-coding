@@ -11,6 +11,7 @@ public class ChatRoomRequestDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatRoomCreateRequestDto {
+        private Long boardId;
         private Long receiverId;
     }
 }
