@@ -25,6 +25,8 @@ import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardPictureService;
 import com.carrot.carrotmarketclonecoding.board.service.impl.BoardServiceImpl;
+import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
+import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.FileUploadLimitException;
@@ -35,6 +37,7 @@ import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -72,6 +75,9 @@ class BoardServiceTest {
 
     @Mock
     private BoardLikeRepository boardLikeRepository;
+
+    @Mock
+    private ChatRoomRepository chatRoomRepository;
 
     @Mock
     private VisitRedisService visitRedisService;
@@ -198,6 +204,12 @@ class BoardServiceTest {
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
             when(boardLikeRepository.countByBoard(any())).thenReturn(10);
             when(visitRedisService.increaseVisit(anyString(), any(), any())).thenReturn(true);
+
+            List<ChatRoom> chatRooms = Arrays.asList(ChatRoom.builder()
+                    .receiver(mockMember)
+                    .board(mockBoard)
+                    .build());
+            when(chatRoomRepository.findByBoard(any(Board.class))).thenReturn(chatRooms);
 
             // when
             BoardDetailResponseDto result = boardService.getBoardDetail(boardId, request);
