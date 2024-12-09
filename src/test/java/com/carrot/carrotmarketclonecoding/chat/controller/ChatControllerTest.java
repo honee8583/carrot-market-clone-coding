@@ -40,6 +40,7 @@ class ChatControllerTest extends ControllerTest {
     }
 
     private ChatRoomCreateRequestDto request = ChatRoomCreateRequestDto.builder()
+            .boardId(1L)
             .receiverId(2L)
             .build();
 

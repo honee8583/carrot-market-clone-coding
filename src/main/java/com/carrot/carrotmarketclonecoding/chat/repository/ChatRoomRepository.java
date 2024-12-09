@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.chat.repository;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import java.util.List;
@@ -12,4 +13,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     List<ChatRoom> findAllByReceiver(Member receiver);
 
     Optional<ChatRoom> findByRoomNum(String roomNum);
+
+    List<ChatRoom> findByBoard(Board board);
 }

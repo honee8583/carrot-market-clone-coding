@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.chat.domain;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.common.BaseEntity;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import jakarta.persistence.Entity;
@@ -29,4 +30,7 @@ public class ChatRoom extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member receiver;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Board board;
 }

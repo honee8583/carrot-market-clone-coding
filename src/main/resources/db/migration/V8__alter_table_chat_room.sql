@@ -1,0 +1,5 @@
+ALTER TABLE chat_room
+    ADD COLUMN board_id BIGINT NOT NULL;
+
+ALTER TABLE chat_room
+    ADD CONSTRAINT FOREIGN KEY(board_id) REFERENCES boards(id);

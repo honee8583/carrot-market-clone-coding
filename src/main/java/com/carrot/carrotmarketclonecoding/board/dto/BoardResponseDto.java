@@ -43,7 +43,7 @@ public class BoardResponseDto {
         private int like;
         private int visit;
 
-        public static BoardDetailResponseDto createBoardDetail(Board board, int like) {
+        public static BoardDetailResponseDto createBoardDetail(Board board, int like, int chatRoomCnt) {
             return BoardDetailResponseDto.builder()
                     .id(board.getId())
                     .writer(board.getMember().getNickname())
@@ -60,6 +60,7 @@ public class BoardResponseDto {
                     .pictures(board.getBoardPictures().stream()
                             .map(PictureResponseDto::createPictureDetail)
                             .collect(Collectors.toList()))
+                    .chat(chatRoomCnt)
                     .like(like)
                     .visit(board.getVisit())
                     .build();

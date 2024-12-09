@@ -3,6 +3,7 @@ package com.carrot.carrotmarketclonecoding.chat.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.carrot.carrotmarketclonecoding.RepositoryTest;
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import java.util.List;
@@ -71,5 +72,29 @@ class ChatRoomRepositoryTest extends RepositoryTest {
 
         // then
         assertThat(result.isPresent()).isEqualTo(true);
+    }
+
+    @Test
+    void findByBoardTest() {
+        // given
+        Board board = Board.builder().build();
+        boardRepository.save(board);
+
+        Member receiver = Member.builder().build();
+        memberRepository.save(receiver);
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomNum("test room")
+                .board(board)
+                .receiver(receiver)
+                .build();
+        chatRoomRepository.save(chatRoom);
+
+        // when
+        List<ChatRoom> result = chatRoomRepository.findByBoard(board);
+
+        // then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getRoomNum()).isEqualTo("test room");
     }
 }

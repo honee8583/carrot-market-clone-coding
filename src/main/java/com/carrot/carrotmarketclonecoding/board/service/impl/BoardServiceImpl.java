@@ -17,6 +17,8 @@ import com.carrot.carrotmarketclonecoding.board.service.VisitRedisService;
 import com.carrot.carrotmarketclonecoding.board.util.HeaderUtil;
 import com.carrot.carrotmarketclonecoding.category.domain.Category;
 import com.carrot.carrotmarketclonecoding.category.repository.CategoryRepository;
+import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
+import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
 import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.CategoryNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
@@ -26,6 +28,7 @@ import com.carrot.carrotmarketclonecoding.common.response.PageResponseDto;
 import com.carrot.carrotmarketclonecoding.member.domain.Member;
 import com.carrot.carrotmarketclonecoding.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +50,7 @@ public class BoardServiceImpl implements BoardService {
     private final SearchKeywordRedisService searchKeywordRedisService;
     private final BoardPictureService boardPictureService;
     private final BoardNotificationService boardNotificationService;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Override
     public Long register(Long authId, BoardRegisterRequestDto registerRequestDto, MultipartFile[] pictures, boolean tmp) {
@@ -72,10 +76,9 @@ public class BoardServiceImpl implements BoardService {
         if (visitRedisService.increaseVisit(board.getId().toString(), ip, userAgent)) {
             board.increaseVisit();
         }
+        List<ChatRoom> chatRooms = chatRoomRepository.findByBoard(board);
 
-        // TODO count chats
-
-        return BoardDetailResponseDto.createBoardDetail(board, like);
+        return BoardDetailResponseDto.createBoardDetail(board, like, chatRooms.size());
     }
 
     @Override
@@ -84,7 +87,7 @@ public class BoardServiceImpl implements BoardService {
         Member member = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Board tmpBoard = boardRepository.findFirstByMemberAndTmpIsTrueOrderByCreateDateDesc(member)
                 .orElseThrow(TmpBoardNotFoundException::new);
-        return BoardDetailResponseDto.createBoardDetail(tmpBoard, 0);
+        return BoardDetailResponseDto.createBoardDetail(tmpBoard, 0, 0);
     }
 
     @Override
