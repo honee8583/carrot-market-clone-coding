@@ -1,5 +1,7 @@
 package com.carrot.carrotmarketclonecoding.chat.service.impl;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
+import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
@@ -7,6 +9,7 @@ import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
 import com.carrot.carrotmarketclonecoding.chat.service.ChatMessageService;
 import com.carrot.carrotmarketclonecoding.chat.service.ChatRoomService;
+import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.ChatRoomNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.NotMemberOfChatRoomException;
@@ -28,16 +31,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final MemberRepository memberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final BoardRepository boardRepository;
     private final ChatMessageService chatMessageService;
 
     @Override
     public String create(Long authId, ChatRoomCreateRequestDto createRequestDto) {
         Member sender = memberRepository.findByAuthId(authId).orElseThrow(MemberNotFoundException::new);
         Member receiver = memberRepository.findByAuthId(createRequestDto.getReceiverId()).orElseThrow(MemberNotFoundException::new);
+        Board board = boardRepository.findById(createRequestDto.getBoardId()).orElseThrow(BoardNotFoundException::new);
 
         String roomNum = UUID.randomUUID().toString();
         ChatRoom chatRoom = ChatRoom.builder()
                 .roomNum(roomNum)
+                .board(board)
                 .sender(sender)
                 .receiver(receiver)
                 .build();
