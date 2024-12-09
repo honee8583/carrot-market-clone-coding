@@ -15,16 +15,19 @@ public class ChatDtoFactory {
         return Arrays.asList(
                 ChatRoomResponseDto.builder()
                         .id(1L)
+                        .boardId(1L)
                         .roomNum("room1")
                         .createDate(LocalDateTime.now())
                         .build(),
                 ChatRoomResponseDto.builder()
                         .id(2L)
+                        .boardId(2L)
                         .roomNum("room2")
                         .createDate(LocalDateTime.now())
                         .build(),
                 ChatRoomResponseDto.builder()
                         .id(3L)
+                        .boardId(3L)
                         .roomNum("room3")
                         .createDate(LocalDateTime.now())
                         .build()

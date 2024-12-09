@@ -20,6 +20,7 @@ public class ChatRestDocsHelper extends RestDocsHelper {
     public ResultHandler createCreateChatRoomDocument() {
         return restDocs.document(
                 requestFields(
+                        fieldWithPath("boardId").description("게시글 아이디"),
                         fieldWithPath("receiverId").description("수신자 아이디")
                 ),
                 responseFields(
@@ -43,6 +44,7 @@ public class ChatRestDocsHelper extends RestDocsHelper {
     private FieldDescriptor[] getChatRoomsFieldDescriptors() {
         return new FieldDescriptor[]{
                 fieldWithPath("data[].id").description("채팅방 아이디"),
+                fieldWithPath("data[].boardId").description("게시글 아이디"),
                 fieldWithPath("data[].roomNum").description("채팅방 번호"),
                 fieldWithPath("data[].createDate").description("채팅방 개설시간")
         };
