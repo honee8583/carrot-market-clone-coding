@@ -1,5 +1,6 @@
 package com.carrot.carrotmarketclonecoding.chat.service.impl;
 
+import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.BOARD_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.CHAT_ROOM_NOT_FOUND;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.FORBIDDEN;
 import static com.carrot.carrotmarketclonecoding.common.response.FailedMessage.MEMBER_NOT_FOUND;
@@ -9,15 +10,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.carrot.carrotmarketclonecoding.board.domain.Board;
+import com.carrot.carrotmarketclonecoding.board.repository.BoardRepository;
 import com.carrot.carrotmarketclonecoding.chat.domain.ChatRoom;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatMessageRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomRequestDto.ChatRoomCreateRequestDto;
 import com.carrot.carrotmarketclonecoding.chat.dto.ChatRoomResponseDto;
 import com.carrot.carrotmarketclonecoding.chat.repository.ChatRoomRepository;
+import com.carrot.carrotmarketclonecoding.common.exception.BoardNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.ChatRoomNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.MemberNotFoundException;
 import com.carrot.carrotmarketclonecoding.common.exception.NotMemberOfChatRoomException;
@@ -49,6 +54,9 @@ class ChatRoomServiceTest {
     @Mock
     private ChatMessageServiceImpl chatMessageService;
 
+    @Mock
+    private BoardRepository boardRepository;
+
     @InjectMocks
     private ChatRoomServiceImpl chatRoomService;
 
@@ -66,8 +74,12 @@ class ChatRoomServiceTest {
             Member mockReceiver = Member.builder().id(2L).authId(2L).build();
             when(memberRepository.findByAuthId(2L)).thenReturn(Optional.of(mockReceiver));
 
+            Board mockBoard = Board.builder().id(1L).member(mockReceiver).build();
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.of(mockBoard));
+
             // when
             ChatRoomCreateRequestDto request = ChatRoomCreateRequestDto.builder()
+                    .boardId(1L)
                     .receiverId(2L)
                     .build();
             String roomNum = chatRoomService.create(1L, request);
@@ -116,6 +128,28 @@ class ChatRoomServiceTest {
                     .isInstanceOf(MemberNotFoundException.class)
                     .hasMessage(MEMBER_NOT_FOUND.getMessage());
         }
+
+        @Test
+        @DisplayName("채팅방 생성시 게시글이 존재하지 않을 경우 BoardNotFoundException 발생")
+        void createBoardNotFoundTest() {
+            // given
+            Member mockSender = Member.builder().id(1L).authId(1L).build();
+            when(memberRepository.findByAuthId(1L)).thenReturn(Optional.of(mockSender));
+
+            Member mockReceiver = Member.builder().id(2L).authId(2L).build();
+            when(memberRepository.findByAuthId(2L)).thenReturn(Optional.of(mockReceiver));
+            when(boardRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            // when
+            // then
+            ChatRoomCreateRequestDto request = ChatRoomCreateRequestDto.builder()
+                    .boardId(1L)
+                    .receiverId(2L)
+                    .build();
+            assertThatThrownBy(() -> chatRoomService.create(1L, request))
+                    .isInstanceOf(BoardNotFoundException.class)
+                    .hasMessage(BOARD_NOT_FOUND.getMessage());
+        }
     }
 
     @Nested
@@ -132,9 +166,9 @@ class ChatRoomServiceTest {
             when(memberRepository.findByAuthId(anyLong())).thenReturn(Optional.of(mockMember));
 
             List<ChatRoom> chatRooms1 = List.of(
-                    ChatRoom.builder().id(1L).build(),
-                    ChatRoom.builder().id(2L).build(),
-                    ChatRoom.builder().id(3L).build()
+                    ChatRoom.builder().id(1L).board(mock(Board.class)).build(),
+                    ChatRoom.builder().id(2L).board(mock(Board.class)).build(),
+                    ChatRoom.builder().id(3L).board(mock(Board.class)).build()
             );
             ReflectionTestUtils.setField(chatRooms1.get(0), "createDate", LocalDateTime.of(2024, 11, 1, 12, 0));
             ReflectionTestUtils.setField(chatRooms1.get(1), "createDate", LocalDateTime.of(2024, 11, 2, 12, 0));
@@ -142,9 +176,9 @@ class ChatRoomServiceTest {
             when(chatRoomRepository.findAllBySender(any(Member.class))).thenReturn(chatRooms1);
 
             List<ChatRoom> chatRooms2 = List.of(
-                    ChatRoom.builder().id(4L).build(),
-                    ChatRoom.builder().id(5L).build(),
-                    ChatRoom.builder().id(6L).build()
+                    ChatRoom.builder().id(4L).board(mock(Board.class)).build(),
+                    ChatRoom.builder().id(5L).board(mock(Board.class)).build(),
+                    ChatRoom.builder().id(6L).board(mock(Board.class)).build()
             );
             ReflectionTestUtils.setField(chatRooms2.get(0), "createDate", LocalDateTime.of(2024, 11, 4, 12, 0));
             ReflectionTestUtils.setField(chatRooms2.get(1), "createDate", LocalDateTime.of(2024, 11, 5, 12, 0));
