@@ -1,8 +1,6 @@
 # 당근마켓 클론코딩
 
 ## Tech
-
----
 - Java 17
 - SpringBoot 3.3.2
 - Spring Security
@@ -29,13 +27,9 @@ JWT 토큰으로 Sateless한 인증방식을 사용하기 위해 Spring Security
 STOMP 프로토콜을 사용해 지정된 메시지의 유형을 사용하고, 서버가 여러개일 경우를 대비해 외부 메시지브로커를 사용해서 구현. 
 
 ## API Documentation
-
----
 [프로젝트 API 문서 바로가기](http://13.209.224.206/docs/index.html)
 
 ## CI/CD 구성
-
----
 ![](images/infra.png)
 1. Github 코드 푸시
 2. 웹훅 트리거 발동
